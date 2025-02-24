@@ -1,21 +1,30 @@
-const CodeDisplay: React.FC<{ code: string }> = ({ code }) => {
-    return (
-      <textarea
-        value={code}
-        readOnly
-        style={{
-          width: "40%",
+import React from 'react';
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { atomDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
+
+interface CodeDisplayProps {
+  code: string;
+  language?: string;
+}
+
+const CodeDisplay: React.FC<CodeDisplayProps> = ({ code, language = 'javascript' }) => {
+  return (
+    <div style={{ width: "100%", borderRadius: "5px", overflow: "hidden" }}>
+      <SyntaxHighlighter 
+        language={language}
+        style={atomDark}
+        customStyle={{
           height: "500px",
-          background: "#282c34",
-          color: "#61dafb",
-          fontFamily: "monospace",
+          margin: 0,
           padding: "10px",
-          borderRadius: "5px",
-          resize: "none",
+          fontFamily: "monospace",
         }}
-      />
-    );
-  };
-  
-  export default CodeDisplay;
-  
+        showLineNumbers={true}
+      >
+        {code}
+      </SyntaxHighlighter>
+    </div>
+  );
+};
+
+export default CodeDisplay;
