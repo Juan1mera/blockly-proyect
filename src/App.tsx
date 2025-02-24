@@ -17,10 +17,10 @@ function App() {
   };
 
   return (
-    <div style={{ padding: "20px", textAlign: "center" }}>
+    <div style={{ padding: "20px" }}>
       <h1>Blockly con Generación y Ejecución de Código</h1>
       
-      <div style={{ display: "flex", gap: "20px" }}>
+      <div style={{ display: "flex", gap: "20px", width: "100%" }}>
         <BlocklyWorkspace setCode={setCode} />
         <CodeDisplay code={code} />
       </div>

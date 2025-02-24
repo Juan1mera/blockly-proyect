@@ -53,7 +53,7 @@ const BlocklyWorkspace: React.FC<{ setCode: (code: string) => void }> = ({ setCo
     };
   }, [setCode]);
 
-  return <div ref={blocklyDiv} style={{ height: "500px", width: "60%" }} />;
+  return <div ref={blocklyDiv} style={{ height: "520px", width: "100%", }} />;
 };
 
 export default BlocklyWorkspace;
