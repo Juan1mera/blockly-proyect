@@ -8,7 +8,6 @@ import { addMathBlocks, mathToolbox } from "../blocs/Math";
 import { addTextBlocks, textToolbox } from "../blocs/Texts";
 import { getCodeFromWorkspace } from "../utils/getCodeFromWorkspace";
 
-// Tipo para la información de los bloques
 interface BlockData {
   id: string;
   type: string;
@@ -20,12 +19,13 @@ interface BlockData {
 const BlocklyWorkspace: React.FC<{
   setCode: (code: string) => void;
   language: string;
-  setBlocksData?: (blocks: BlockData[]) => void; // Nueva prop opcional
-}> = ({ setCode, language, setBlocksData }) => {
+  setBlocksData?: (blocks: BlockData[]) => void;
+  loadBlocks?: string;
+  setLoadXml?: (loadXml: (xml: string) => void) => void; // Nueva prop para pasar la función de carga
+}> = ({ setCode, language, setBlocksData, loadBlocks, setLoadXml }) => {
   const blocklyDiv = useRef<HTMLDivElement>(null);
   const workspace = useRef<Blockly.WorkspaceSvg | null>(null);
 
-  // Función para extraer datos de un bloque
   const getBlockData = (block: Blockly.Block): BlockData => {
     const blockData: BlockData = {
       id: block.id,
@@ -34,7 +34,6 @@ const BlocklyWorkspace: React.FC<{
       inputs: {},
     };
 
-    // Obtener valores de los campos
     block.inputList.forEach((input) => {
       input.fieldRow.forEach((field) => {
         if (field.name) {
@@ -43,14 +42,12 @@ const BlocklyWorkspace: React.FC<{
       });
     });
 
-    // Obtener entradas (conexiones a otros bloques)
     block.inputList.forEach((input) => {
       if (input.connection && input.connection.targetBlock()) {
         blockData.inputs[input.name] = getBlockData(input.connection.targetBlock()!);
       }
     });
 
-    // Obtener el siguiente bloque (si existe)
     if (block.nextConnection && block.nextConnection.targetBlock()) {
       blockData.next = getBlockData(block.nextConnection.targetBlock()!);
     }
@@ -58,19 +55,31 @@ const BlocklyWorkspace: React.FC<{
     return blockData;
   };
 
-  // Función para actualizar los datos de los bloques
   const updateBlocksData = () => {
     if (workspace.current && setBlocksData) {
-      const allBlocks = workspace.current.getAllBlocks(false); // false para no ordenar por posición
-      const topBlocks = workspace.current.getTopBlocks(false); // Bloques raíz
+      const topBlocks = workspace.current.getTopBlocks(false);
       const blocksData = topBlocks.map((block) => getBlockData(block));
       setBlocksData(blocksData);
     }
   };
 
-  // Inicialización del workspace (solo una vez)
+  // Función para cargar XML en el workspace
+  const loadXml = (xml: string) => {
+    if (workspace.current) {
+      try {
+        const xmlDom = Blockly.utils.xml.textToDom(xml);
+        Blockly.Xml.clearWorkspaceAndLoadFromXml(xmlDom, workspace.current);
+        const code = getCodeFromWorkspace(workspace.current, language);
+        setCode(code);
+        updateBlocksData();
+      } catch (error) {
+        console.error("Error cargando XML:", error);
+      }
+    }
+  };
+
+  // Inicialización del workspace
   useEffect(() => {
-    // Registramos los bloques personalizados
     addLoopBlocks();
     addListBlocks();
     addTextBlocks();
@@ -94,14 +103,18 @@ const BlocklyWorkspace: React.FC<{
         trashcan: true,
       });
 
-      // Listener para cambios en los bloques
       workspace.current.addChangeListener(() => {
         if (workspace.current) {
           const code = getCodeFromWorkspace(workspace.current, language);
           setCode(code);
-          updateBlocksData(); // Actualizamos los datos de los bloques
+          updateBlocksData();
         }
       });
+
+      // Pasamos la función loadXml al componente padre
+      if (setLoadXml) {
+        setLoadXml(loadXml);
+      }
     }
 
     return () => {
@@ -110,16 +123,23 @@ const BlocklyWorkspace: React.FC<{
         workspace.current = null;
       }
     };
-  }, [setCode]); // Quitamos 'language' de las dependencias
+  }, [setCode, setLoadXml]);
 
-  // Efecto para actualizar el código y datos cuando cambia el lenguaje
+  // Actualizar código y datos cuando cambia el lenguaje
   useEffect(() => {
     if (workspace.current) {
       const code = getCodeFromWorkspace(workspace.current, language);
       setCode(code);
-      updateBlocksData(); // Actualizamos los datos de los bloques
+      updateBlocksData();
     }
   }, [language, setCode]);
+
+  // Cargar bloques desde loadBlocks
+  useEffect(() => {
+    if (workspace.current && loadBlocks) {
+      loadXml(loadBlocks);
+    }
+  }, [loadBlocks, language, setCode]);
 
   return <div ref={blocklyDiv} style={{ height: "520px", width: "100%" }} />;
 };
