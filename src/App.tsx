@@ -44,7 +44,7 @@ function App() {
       <button
         onClick={runCode}
         style={{
-          background: "#61dafb",
+          background: "#A097E2",
           color: "#000",
           padding: "10px 20px",
           fontSize: "16px",
