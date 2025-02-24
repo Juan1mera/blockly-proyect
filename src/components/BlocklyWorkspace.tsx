@@ -12,29 +12,30 @@ const BlocklyWorkspace: React.FC<{
   setCode: (code: string) => void;
   language: string;
   loadBlocks?: string;
-  setLoadXml?: (loadXml: (xml: string) => void) => void;
-}> = ({ setCode, language, loadBlocks, setLoadXml }) => {
+}> = ({ setCode, language, loadBlocks }) => {
   const blocklyDiv = useRef<HTMLDivElement>(null);
   const workspace = useRef<Blockly.WorkspaceSvg | null>(null);
 
   const loadXml = (xml: string) => {
     if (workspace.current) {
       if (!xml || xml.trim() === "") {
-        console.warn("No se proporcionó XML válido para cargar.");
-        return;
-      }
-      try {
-        const xmlDom = Blockly.utils.xml.textToDom(xml);
-        Blockly.Xml.clearWorkspaceAndLoadFromXml(xmlDom, workspace.current);
-        const code = getCodeFromWorkspace(workspace.current, language);
-        setCode(code);
-      } catch (error) {
-        console.error("Error cargando XML:", error);
-        throw error;
+        workspace.current.clear();
+        setCode("");
+      } else {
+        try {
+          const xmlDom = Blockly.utils.xml.textToDom(xml);
+          Blockly.Xml.clearWorkspaceAndLoadFromXml(xmlDom, workspace.current);
+          const code = getCodeFromWorkspace(workspace.current, language);
+          setCode(code);
+        } catch (error) {
+          console.error("Error cargando XML:", error);
+          setCode(`// Error cargando bloques: ${String(error)}`);
+        }
       }
     }
   };
 
+  // Inicialización del workspace
   useEffect(() => {
     addLoopBlocks();
     addListBlocks();
@@ -66,8 +67,11 @@ const BlocklyWorkspace: React.FC<{
         }
       });
 
-      if (setLoadXml) {
-        setLoadXml(loadXml);
+      // Cargar XML inicial si está disponible
+      if (loadBlocks) {
+        loadXml(loadBlocks);
+      } else {
+        setCode(""); // Asegurar que CodeDisplay esté vacío si no hay bloques
       }
     }
 
@@ -77,8 +81,9 @@ const BlocklyWorkspace: React.FC<{
         workspace.current = null;
       }
     };
-  }, [setCode, setLoadXml]);
+  }, [setCode]); // Solo depende de setCode, no de loadBlocks ni language inicialmente
 
+  // Actualizar código cuando cambia el lenguaje, sin afectar el workspace
   useEffect(() => {
     if (workspace.current) {
       const code = getCodeFromWorkspace(workspace.current, language);
@@ -86,11 +91,12 @@ const BlocklyWorkspace: React.FC<{
     }
   }, [language, setCode]);
 
+  // Cargar bloques desde loadBlocks y actualizar el código
   useEffect(() => {
-    if (workspace.current && loadBlocks) {
+    if (workspace.current && loadBlocks !== undefined) {
       loadXml(loadBlocks);
     }
-  }, [loadBlocks, language, setCode]);
+  }, [loadBlocks, setCode]); // No incluimos language aquí para evitar recargas innecesarias
 
   return <div ref={blocklyDiv} style={{ height: "520px", width: "100%" }} />;
 };

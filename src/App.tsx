@@ -10,13 +10,11 @@ function App() {
   const [consoleOutput, setConsoleOutput] = useState<string[]>([]);
   const [currentSection, setCurrentSection] = useState<number>(1);
   const [sections, setSections] = useState<{ [key: number]: string }>(() => {
-    // Cargar estado inicial desde localStorage
     const savedSections = localStorage.getItem("blockly_sections");
     return savedSections
       ? JSON.parse(savedSections)
       : { 1: "", 2: "", 3: "", 4: "", 5: "" };
   });
-  const [loadXml, setLoadXml] = useState<((xml: string) => void) | null>(null);
 
   // Guardar sections en localStorage cada vez que cambie
   useEffect(() => {
@@ -61,10 +59,6 @@ function App() {
 
   const handleSectionChange = (section: number) => {
     setCurrentSection(section);
-    const sectionXml = sections[section] || "";
-    if (loadXml && sectionXml) {
-      loadXml(sectionXml);
-    }
   };
 
   return (
@@ -111,7 +105,6 @@ function App() {
           setCode={setCode}
           language={language}
           loadBlocks={sections[currentSection]}
-          setLoadXml={setLoadXml}
         />
         <div style={{ width: "50%" }}>
           <select
