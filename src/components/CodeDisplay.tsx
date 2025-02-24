@@ -11,6 +11,7 @@ const CodeDisplay: React.FC<{ code: string }> = ({ code }) => {
           fontFamily: "monospace",
           padding: "10px",
           borderRadius: "5px",
+          resize: "none",
         }}
       />
     );
