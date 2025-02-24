@@ -16,18 +16,12 @@ function App() {
       ? JSON.parse(savedSections)
       : { 1: "", 2: "", 3: "", 4: "", 5: "" };
   });
-  const [xmlInput, setXmlInput] = useState<string>("");
   const [loadXml, setLoadXml] = useState<((xml: string) => void) | null>(null);
 
   // Guardar sections en localStorage cada vez que cambie
   useEffect(() => {
     localStorage.setItem("blockly_sections", JSON.stringify(sections));
   }, [sections]);
-
-  // Inicializar xmlInput con el XML de la sección actual al montar
-  useEffect(() => {
-    setXmlInput(sections[currentSection] || "");
-  }, [currentSection, sections]);
 
   const runCode = () => {
     setConsoleOutput([]);
@@ -61,37 +55,13 @@ function App() {
         ...prev,
         [currentSection]: xmlText,
       }));
-      setXmlInput(xmlText);
       alert(`Sección ${currentSection} guardada en localStorage.`);
-    }
-  };
-
-  const loadXmlBlocks = () => {
-    if (loadXml) {
-      if (!xmlInput || xmlInput.trim() === "") {
-        alert("Por favor, ingresa un XML válido en el campo de texto.");
-        return;
-      }
-      try {
-        loadXml(xmlInput);
-        setSections((prev) => ({
-          ...prev,
-          [currentSection]: xmlInput,
-        }));
-        alert(`Bloques cargados y guardados en la Sección ${currentSection} en localStorage.`);
-      } catch (error) {
-        console.error("Error cargando bloques:", error);
-        alert(`Error: El XML ingresado no es válido. Detalles: ${String(error)}`);
-      }
-    } else {
-      alert("El workspace no está listo para cargar bloques todavía.");
     }
   };
 
   const handleSectionChange = (section: number) => {
     setCurrentSection(section);
     const sectionXml = sections[section] || "";
-    setXmlInput(sectionXml);
     if (loadXml && sectionXml) {
       loadXml(sectionXml);
     }
@@ -215,36 +185,6 @@ function App() {
         ) : (
           <div>No hay bloques guardados en esta sección.</div>
         )}
-      </div>
-
-      <div style={{ marginTop: "20px" }}>
-        <h3>Editar o Importar XML para la Sección {currentSection}:</h3>
-        <textarea
-          value={xmlInput}
-          onChange={(e) => setXmlInput(e.target.value)}
-          placeholder="Pega o edita el XML de los bloques aquí"
-          style={{
-            width: "100%",
-            height: "100px",
-            padding: "10px",
-            fontFamily: "monospace",
-            borderRadius: "5px",
-          }}
-        />
-        <button
-          onClick={loadXmlBlocks}
-          style={{
-            background: "#2196f3",
-            color: "#fff",
-            padding: "10px 20px",
-            marginTop: "10px",
-            border: "none",
-            borderRadius: "5px",
-            cursor: "pointer",
-          }}
-        >
-          Cargar Bloques en Sección {currentSection}
-        </button>
       </div>
 
       <GraphicsView />
