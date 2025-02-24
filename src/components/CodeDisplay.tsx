@@ -14,7 +14,7 @@ const CodeDisplay: React.FC<CodeDisplayProps> = ({ code, language = 'javascript'
         language={language}
         style={atomDark}
         customStyle={{
-          height: "500px",
+          height: "480px",
           margin: 0,
           padding: "10px",
           fontFamily: "monospace",
