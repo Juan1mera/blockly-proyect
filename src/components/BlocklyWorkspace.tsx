@@ -15,6 +15,7 @@ const BlocklyWorkspace: React.FC<{
   const blocklyDiv = useRef<HTMLDivElement>(null);
   const workspace = useRef<Blockly.WorkspaceSvg | null>(null);
 
+  // Inicialización del workspace (solo una vez)
   useEffect(() => {
     // Registramos los bloques personalizados
     addLoopBlocks();
@@ -33,13 +34,14 @@ const BlocklyWorkspace: React.FC<{
       </xml>
     `;
 
-    if (blocklyDiv.current) {
+    if (blocklyDiv.current && !workspace.current) {
       workspace.current = Blockly.inject(blocklyDiv.current, {
         toolbox: combinedToolbox,
         scrollbars: true,
         trashcan: true,
       });
 
+      // Listener para cambios en los bloques
       workspace.current.addChangeListener(() => {
         if (workspace.current) {
           const code = getCodeFromWorkspace(workspace.current, language);
@@ -51,9 +53,18 @@ const BlocklyWorkspace: React.FC<{
     return () => {
       if (workspace.current) {
         workspace.current.dispose();
+        workspace.current = null;
       }
     };
-  }, [setCode, language]); // Añadimos 'language' como dependencia
+  }, [setCode]); // Quitamos 'language' de las dependencias
+
+  // Efecto para actualizar el código cuando cambia el lenguaje
+  useEffect(() => {
+    if (workspace.current) {
+      const code = getCodeFromWorkspace(workspace.current, language);
+      setCode(code);
+    }
+  }, [language, setCode]); // Dependemos solo de 'language'
 
   return <div ref={blocklyDiv} style={{ height: "520px", width: "100%" }} />;
 };

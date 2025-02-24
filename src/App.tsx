@@ -24,7 +24,6 @@ function App() {
   return (
     <div style={{ padding: "20px" }}>
       <h1>Blockly con Generación y Ejecución de Código</h1>
-
       <div style={{ display: "flex", gap: "20px", width: "100%" }}>
         <BlocklyWorkspace setCode={setCode} language={language} />
         <div style={{ width: "50%" }}>
@@ -42,7 +41,6 @@ function App() {
           <CodeDisplay code={code} language={language} />
         </div>
       </div>
-
       <button
         onClick={runCode}
         style={{
@@ -58,7 +56,6 @@ function App() {
       >
         Ejecutar Código
       </button>
-
       <GraphicsView />
     </div>
   );
