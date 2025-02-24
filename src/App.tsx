@@ -6,8 +6,21 @@ import GraphicsView from "./components/GraphicsView";
 function App() {
   const [code, setCode] = useState<string>("");
   const [language, setLanguage] = useState<string>("javascript");
+  const [consoleOutput, setConsoleOutput] = useState<string[]>([]); // Estado para la salida de la consola
 
   const runCode = () => {
+    // Limpiamos la salida anterior
+    setConsoleOutput([]);
+
+    // Guardamos la función original de console.log
+    const originalConsoleLog = console.log;
+
+    // Sobreescribimos console.log para capturar la salida
+    console.log = (...args: any[]) => {
+      setConsoleOutput((prev) => [...prev, args.join(" ")]);
+      originalConsoleLog.apply(console, args); // Opcional: mantener la salida en la consola del navegador
+    };
+
     try {
       if (language === "javascript") {
         // eslint-disable-next-line no-eval
@@ -17,13 +30,17 @@ function App() {
       }
     } catch (error) {
       console.error("Error ejecutando el código:", error);
-      alert("Error al ejecutar el código.");
+      setConsoleOutput((prev) => [...prev, `Error: ${String(error)}`]);
+    } finally {
+      // Restauramos console.log a su estado original
+      console.log = originalConsoleLog;
     }
   };
 
   return (
     <div style={{ padding: "20px" }}>
       <h1>Blockly con Generación y Ejecución de Código</h1>
+
       <div style={{ display: "flex", gap: "20px", width: "100%" }}>
         <BlocklyWorkspace setCode={setCode} language={language} />
         <div style={{ width: "50%" }}>
@@ -41,6 +58,7 @@ function App() {
           <CodeDisplay code={code} language={language} />
         </div>
       </div>
+
       <button
         onClick={runCode}
         style={{
@@ -56,6 +74,29 @@ function App() {
       >
         Ejecutar Código
       </button>
+
+      {/* Área para mostrar la salida de la consola */}
+      <div
+        style={{
+          marginTop: "20px",
+          padding: "10px",
+          background: "#282c34",
+          color: "#fff",
+          fontFamily: "monospace",
+          borderRadius: "5px",
+          maxHeight: "200px",
+          overflowY: "auto",
+          whiteSpace: "pre-wrap",
+        }}
+      >
+        <h3>Salida de la Consola:</h3>
+        {consoleOutput.length > 0 ? (
+          consoleOutput.map((line, index) => <div key={index}>{line}</div>)
+        ) : (
+          <div>No hay salida todavía.</div>
+        )}
+      </div>
+
       <GraphicsView />
     </div>
   );
