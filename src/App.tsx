@@ -1,32 +1,33 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import BlocklyWorkspace from "./components/BlocklyWorkspace";
 import CodeDisplay from "./components/CodeDisplay";
 import GraphicsView from "./components/GraphicsView";
 import * as Blockly from "blockly";
 
-interface BlockData {
-  id: string;
-  type: string;
-  fields: { [key: string]: any };
-  inputs: { [key: string]: BlockData | null };
-  next?: BlockData | null;
-}
-
 function App() {
   const [code, setCode] = useState<string>("");
   const [language, setLanguage] = useState<string>("javascript");
   const [consoleOutput, setConsoleOutput] = useState<string[]>([]);
-  const [blocksData, setBlocksData] = useState<BlockData[]>([]);
   const [currentSection, setCurrentSection] = useState<number>(1);
-  const [sections, setSections] = useState<{ [key: number]: string }>({
-    1: "",
-    2: "",
-    3: "",
-    4: "",
-    5: "",
+  const [sections, setSections] = useState<{ [key: number]: string }>(() => {
+    // Cargar estado inicial desde localStorage
+    const savedSections = localStorage.getItem("blockly_sections");
+    return savedSections
+      ? JSON.parse(savedSections)
+      : { 1: "", 2: "", 3: "", 4: "", 5: "" };
   });
-  const [jsonInput, setJsonInput] = useState<string>("");
-  const [loadXml, setLoadXml] = useState<((xml: string) => void) | null>(null); // Función para cargar XML
+  const [xmlInput, setXmlInput] = useState<string>("");
+  const [loadXml, setLoadXml] = useState<((xml: string) => void) | null>(null);
+
+  // Guardar sections en localStorage cada vez que cambie
+  useEffect(() => {
+    localStorage.setItem("blockly_sections", JSON.stringify(sections));
+  }, [sections]);
+
+  // Inicializar xmlInput con el XML de la sección actual al montar
+  useEffect(() => {
+    setXmlInput(sections[currentSection] || "");
+  }, [currentSection, sections]);
 
   const runCode = () => {
     setConsoleOutput([]);
@@ -55,27 +56,44 @@ function App() {
     const workspace = Blockly.getMainWorkspace() as Blockly.WorkspaceSvg;
     if (workspace) {
       const xml = Blockly.Xml.workspaceToDom(workspace);
-      const xmlText = Blockly.Xml.domToText(xml);
+      const xmlText = Blockly.Xml.domToPrettyText(xml);
       setSections((prev) => ({
         ...prev,
         [currentSection]: xmlText,
       }));
-      alert(`Sección ${currentSection} guardada.`);
+      setXmlInput(xmlText);
+      alert(`Sección ${currentSection} guardada en localStorage.`);
     }
   };
 
-  const loadJsonBlocks = () => {
+  const loadXmlBlocks = () => {
     if (loadXml) {
+      if (!xmlInput || xmlInput.trim() === "") {
+        alert("Por favor, ingresa un XML válido en el campo de texto.");
+        return;
+      }
       try {
-        // Por ahora asumimos que jsonInput es XML; ajustaremos para JSON si lo deseas
-        loadXml(jsonInput);
-        setJsonInput("");
+        loadXml(xmlInput);
+        setSections((prev) => ({
+          ...prev,
+          [currentSection]: xmlInput,
+        }));
+        alert(`Bloques cargados y guardados en la Sección ${currentSection} en localStorage.`);
       } catch (error) {
         console.error("Error cargando bloques:", error);
-        alert("Error: El input no es un XML válido.");
+        alert(`Error: El XML ingresado no es válido. Detalles: ${String(error)}`);
       }
     } else {
       alert("El workspace no está listo para cargar bloques todavía.");
+    }
+  };
+
+  const handleSectionChange = (section: number) => {
+    setCurrentSection(section);
+    const sectionXml = sections[section] || "";
+    setXmlInput(sectionXml);
+    if (loadXml && sectionXml) {
+      loadXml(sectionXml);
     }
   };
 
@@ -88,7 +106,7 @@ function App() {
         {[1, 2, 3, 4, 5].map((section) => (
           <button
             key={section}
-            onClick={() => setCurrentSection(section)}
+            onClick={() => handleSectionChange(section)}
             style={{
               background: currentSection === section ? "#61dafb" : "#ccc",
               color: "#000",
@@ -122,9 +140,8 @@ function App() {
         <BlocklyWorkspace
           setCode={setCode}
           language={language}
-          setBlocksData={setBlocksData}
           loadBlocks={sections[currentSection]}
-          setLoadXml={setLoadXml} // Pasamos la función para cargar XML
+          setLoadXml={setLoadXml}
         />
         <div style={{ width: "50%" }}>
           <select
@@ -193,19 +210,19 @@ function App() {
         }}
       >
         <h3>Datos de los Bloques (Sección {currentSection}):</h3>
-        {blocksData.length > 0 ? (
-          <pre>{JSON.stringify(blocksData, null, 2)}</pre>
+        {sections[currentSection] ? (
+          <pre>{sections[currentSection]}</pre>
         ) : (
-          <div>No hay bloques en esta sección.</div>
+          <div>No hay bloques guardados en esta sección.</div>
         )}
       </div>
 
       <div style={{ marginTop: "20px" }}>
-        <h3>Importar Bloques desde XML:</h3>
+        <h3>Editar o Importar XML para la Sección {currentSection}:</h3>
         <textarea
-          value={jsonInput}
-          onChange={(e) => setJsonInput(e.target.value)}
-          placeholder="Pega aquí el XML de los bloques"
+          value={xmlInput}
+          onChange={(e) => setXmlInput(e.target.value)}
+          placeholder="Pega o edita el XML de los bloques aquí"
           style={{
             width: "100%",
             height: "100px",
@@ -215,7 +232,7 @@ function App() {
           }}
         />
         <button
-          onClick={loadJsonBlocks}
+          onClick={loadXmlBlocks}
           style={{
             background: "#2196f3",
             color: "#fff",
@@ -226,7 +243,7 @@ function App() {
             cursor: "pointer",
           }}
         >
-          Cargar Bloques
+          Cargar Bloques en Sección {currentSection}
         </button>
       </div>
 
