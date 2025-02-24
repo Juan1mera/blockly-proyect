@@ -1,326 +1,153 @@
-import * as Blockly from "blockly";
-import { javascriptGenerator, Order as JavascriptOrder } from "blockly/javascript";
-import { phpGenerator, Order as PhpOrder } from "blockly/php";
-import { pythonGenerator, Order as PythonOrder } from "blockly/python";
-import { luaGenerator, Order as LuaOrder } from "blockly/lua";
-import { dartGenerator, Order as DartOrder } from "blockly/dart";
-
-// Extendemos el tipo Block para incluir propiedades y métodos personalizados
-interface CustomBlock extends Blockly.Block {
-  elseifCount_: number;
-  elseCount_: number;
-  updateShape_: () => void;
-}
+import * as Blockly from "blockly/core";
+import { javascriptGenerator, Order } from "blockly/javascript";
 
 export const addLogicBlocks = () => {
-  // Bloque de comparación
-  if (!Blockly.Blocks["logic_compare"]) {
-    Blockly.Blocks["logic_compare"] = {
-      init() {
-        this.appendValueInput("A").setCheck(null);
-        this.appendDummyInput().appendField(
-          new Blockly.FieldDropdown([
-            ["=", "=="],
-            ["≠", "!="],
-            ["<", "<"],
-            [">", ">"],
-            ["≤", "<="],
-            ["≥", ">="],
-          ]),
-          "OP"
-        );
-        this.appendValueInput("B").setCheck(null);
-        this.setOutput(true, "Boolean");
-        this.setColour(210);
-      },
-    };
-  }
-
-  // JavaScript
-  javascriptGenerator.forBlock["logic_compare"] = function (block: Blockly.Block) {
-    const a = javascriptGenerator.valueToCode(block, "A", JavascriptOrder.ATOMIC) || "0";
-    const b = javascriptGenerator.valueToCode(block, "B", JavascriptOrder.ATOMIC) || "0";
-    const op = block.getFieldValue("OP");
-    return [`${a} ${op} ${b}`, JavascriptOrder.ATOMIC];
+  // Block: logic_if (If - Do)
+  Blockly.Blocks["logic_if"] = {
+    init() {
+      this.appendValueInput("IF").setCheck("Boolean").appendField("if");
+      this.appendStatementInput("DO").setCheck(null).appendField("do");
+      this.setPreviousStatement(true, null);
+      this.setNextStatement(true, null);
+      this.setColour(210);
+    },
   };
 
-  // PHP
-  phpGenerator.forBlock["logic_compare"] = function (block: Blockly.Block) {
-    const a = phpGenerator.valueToCode(block, "A", PhpOrder.ATOMIC) || "0";
-    const b = phpGenerator.valueToCode(block, "B", PhpOrder.ATOMIC) || "0";
-    const op = block.getFieldValue("OP");
-    return [`${a} ${op} ${b}`, PhpOrder.ATOMIC];
+  javascriptGenerator.forBlock["logic_if"] = function (block: Blockly.Block) {
+    const condition = javascriptGenerator.valueToCode(block, "IF", Order.NONE) || "false";
+    const doCode = javascriptGenerator.statementToCode(block, "DO");
+    return `if (${condition}) {\n${doCode}}\n`;
   };
 
-  // Python
-  pythonGenerator.forBlock["logic_compare"] = function (block: Blockly.Block) {
-    const a = pythonGenerator.valueToCode(block, "A", PythonOrder.ATOMIC) || "0";
-    const b = pythonGenerator.valueToCode(block, "B", PythonOrder.ATOMIC) || "0";
-    const op = block.getFieldValue("OP");
-    return [`${a} ${op} ${b}`, PythonOrder.ATOMIC];
+  // Block: logic_if_else (If - Do / Else - Do)
+  Blockly.Blocks["logic_if_else"] = {
+    init() {
+      this.appendValueInput("IF").setCheck("Boolean").appendField("if");
+      this.appendStatementInput("DO").setCheck(null).appendField("do");
+      this.appendStatementInput("ELSE").setCheck(null).appendField("else do");
+      this.setPreviousStatement(true, null);
+      this.setNextStatement(true, null);
+      this.setColour(210);
+    },
   };
 
-  // Lua
-  luaGenerator.forBlock["logic_compare"] = function (block: Blockly.Block) {
-    const a = luaGenerator.valueToCode(block, "A", LuaOrder.ATOMIC) || "0";
-    const b = luaGenerator.valueToCode(block, "B", LuaOrder.ATOMIC) || "0";
-    const op = block.getFieldValue("OP");
-    return [`${a} ${op} ${b}`, LuaOrder.ATOMIC];
+  javascriptGenerator.forBlock["logic_if_else"] = function (block: Blockly.Block) {
+    const condition = javascriptGenerator.valueToCode(block, "IF", Order.NONE) || "false";
+    const doCode = javascriptGenerator.statementToCode(block, "DO");
+    const elseCode = javascriptGenerator.statementToCode(block, "ELSE");
+    return `if (${condition}) {\n${doCode}}\nelse {\n${elseCode}}\n`;
   };
 
-  // Dart
-  dartGenerator.forBlock["logic_compare"] = function (block: Blockly.Block) {
-    const a = dartGenerator.valueToCode(block, "A", DartOrder.ATOMIC) || "0";
-    const b = dartGenerator.valueToCode(block, "B", DartOrder.ATOMIC) || "0";
-    const op = block.getFieldValue("OP");
-    return [`${a} ${op} ${b}`, DartOrder.ATOMIC];
+  // Block: logic_if_elseif_else (If - Do / Else If - Do / Else - Do)
+  Blockly.Blocks["logic_if_elseif_else"] = {
+    init() {
+      this.appendValueInput("IF").setCheck("Boolean").appendField("if");
+      this.appendStatementInput("DO").setCheck(null).appendField("do");
+      this.appendValueInput("ELSE_IF").setCheck("Boolean").appendField("else if");
+      this.appendStatementInput("DO_ELSE_IF").setCheck(null).appendField("do");
+      this.appendStatementInput("ELSE").setCheck(null).appendField("else do");
+      this.setPreviousStatement(true, null);
+      this.setNextStatement(true, null);
+      this.setColour(210);
+    },
   };
 
-  // Bloque if/elseif/else simplificado
-  if (!Blockly.Blocks["controls_if"]) {
-    Blockly.Blocks["controls_if"] = {
-      init() {
-        this.appendValueInput("IF0")
-          .setCheck("Boolean")
-          .appendField("si");
-        this.appendStatementInput("DO0").setCheck(null).appendField("hacer");
-        this.setPreviousStatement(true, null);
-        this.setNextStatement(true, null);
-        this.setColour(210);
-        // Usamos type assertion para evitar el error de TypeScript
-        this.setMutator(new (Blockly as any).Mutator(["controls_if_elseif", "controls_if_else"]));
-        (this as CustomBlock).elseifCount_ = 0;
-        (this as CustomBlock).elseCount_ = 0;
-      },
-      mutationToDom(this: CustomBlock) {
-        const container = Blockly.utils.xml.createElement("mutation");
-        container.setAttribute("elseif", String(this.elseifCount_));
-        container.setAttribute("else", String(this.elseCount_));
-        return container;
-      },
-      domToMutation(this: CustomBlock, xmlElement: Element) {
-        this.elseifCount_ = parseInt(xmlElement.getAttribute("elseif") || "0", 10);
-        this.elseCount_ = parseInt(xmlElement.getAttribute("else") || "0", 10);
-        this.updateShape_();
-      },
-      decompose(this: CustomBlock, workspace: Blockly.WorkspaceSvg) {
-        const containerBlock = workspace.newBlock("controls_if_if");
-        containerBlock.initSvg();
-        let connection = containerBlock.nextConnection;
-        for (let i = 1; i <= this.elseifCount_; i++) {
-          const elseifBlock = workspace.newBlock("controls_if_elseif");
-          elseifBlock.initSvg();
-          connection?.connect(elseifBlock.previousConnection);
-          connection = elseifBlock.nextConnection;
-        }
-        if (this.elseCount_) {
-          const elseBlock = workspace.newBlock("controls_if_else");
-          elseBlock.initSvg();
-          connection?.connect(elseBlock.previousConnection);
-        }
-        return containerBlock;
-      },
-      compose(this: CustomBlock, containerBlock: Blockly.Block) {
-        let clauseBlock = containerBlock.nextConnection?.targetBlock() || null;
-        this.elseifCount_ = 0;
-        this.elseCount_ = 0;
-        while (this.getInput(`IF${this.elseifCount_}`)) {
-          this.removeInput(`IF${this.elseifCount_}`);
-          this.removeInput(`DO${this.elseifCount_}`);
-        }
-        if (this.getInput("ELSE")) {
-          this.removeInput("ELSE");
-        }
-        while (clauseBlock) {
-          switch (clauseBlock.type) {
-            case "controls_if_elseif":
-              this.elseifCount_++;
-              this.appendValueInput(`IF${this.elseifCount_}`)
-                .setCheck("Boolean")
-                .appendField("sino si");
-              this.appendStatementInput(`DO${this.elseifCount_}`)
-                .setCheck(null)
-                .appendField("hacer");
-              break;
-            case "controls_if_else":
-              this.elseCount_++;
-              this.appendStatementInput("ELSE").setCheck(null).appendField("sino");
-              break;
-          }
-          clauseBlock = clauseBlock.nextConnection?.targetBlock() || null;
-        }
-      },
-      updateShape_(this: CustomBlock) {
-        while (this.getInput(`IF${this.elseifCount_}`)) {
-          this.removeInput(`IF${this.elseifCount_}`);
-          this.removeInput(`DO${this.elseifCount_}`);
-        }
-        if (this.getInput("ELSE")) {
-          this.removeInput("ELSE");
-        }
-        for (let i = 1; i <= this.elseifCount_; i++) {
-          this.appendValueInput(`IF${i}`)
-            .setCheck("Boolean")
-            .appendField("sino si");
-          this.appendStatementInput(`DO${i}`).setCheck(null).appendField("hacer");
-        }
-        if (this.elseCount_) {
-          this.appendStatementInput("ELSE").setCheck(null).appendField("sino");
-        }
-      },
-    };
+  javascriptGenerator.forBlock["logic_if_elseif_else"] = function (block: Blockly.Block) {
+    const condition = javascriptGenerator.valueToCode(block, "IF", Order.NONE) || "false";
+    const doCode = javascriptGenerator.statementToCode(block, "DO");
 
-    // Bloques auxiliares para el mutator
-    if (!Blockly.Blocks["controls_if_if"]) {
-      Blockly.Blocks["controls_if_if"] = {
-        init() {
-          this.appendDummyInput().appendField("si");
-          this.setNextStatement(true);
-          this.setColour(210);
-          this.setTooltip("Bloque principal de control if");
-        },
-      };
+    const elseIfCondition = javascriptGenerator.valueToCode(block, "ELSE_IF", Order.NONE);
+    const doElseIf = javascriptGenerator.statementToCode(block, "DO_ELSE_IF");
+
+    const elseCode = javascriptGenerator.statementToCode(block, "ELSE");
+
+    let code = `if (${condition}) {\n${doCode}}\n`;
+    if (elseIfCondition) {
+      code += `else if (${elseIfCondition}) {\n${doElseIf}}\n`;
     }
-
-    if (!Blockly.Blocks["controls_if_elseif"]) {
-      Blockly.Blocks["controls_if_elseif"] = {
-        init() {
-          this.appendDummyInput().appendField("sino si");
-          this.setPreviousStatement(true);
-          this.setNextStatement(true);
-          this.setColour(210);
-          this.setTooltip("Añadir una condición sino si");
-        },
-      };
+    if (elseCode) {
+      code += `else {\n${elseCode}}\n`;
     }
+    return code;
+  };
 
-    if (!Blockly.Blocks["controls_if_else"]) {
-      Blockly.Blocks["controls_if_else"] = {
-        init() {
-          this.appendDummyInput().appendField("sino");
-          this.setPreviousStatement(true);
-          this.setColour(210);
-          this.setTooltip("Añadir un bloque sino");
-        },
-      };
-    }
+  // Block: logic_operation (AND, OR)
+  Blockly.Blocks["logic_operation"] = {
+    init() {
+      this.appendValueInput("A").setCheck("Boolean");
+      this.appendValueInput("B")
+        .setCheck("Boolean")
+        .appendField(new Blockly.FieldDropdown([
+          ["AND", "AND"],
+          ["OR", "OR"]
+        ]), "OP");
+      this.setInputsInline(true);
+      this.setOutput(true, "Boolean");
+      this.setColour(210);
+    },
+  };
 
-    // JavaScript
-    javascriptGenerator.forBlock["controls_if"] = function (block: Blockly.Block) {
-      let code = "";
-      const condition = javascriptGenerator.valueToCode(block, "IF0", JavascriptOrder.ATOMIC) || "false";
-      const branch = javascriptGenerator.statementToCode(block, "DO0");
-      code += `if (${condition}) {\n${branch}}\n`;
+  javascriptGenerator.forBlock["logic_operation"] = function (block: Blockly.Block) {
+    const operator = block.getFieldValue("OP") === "AND" ? "&&" : "||";
+    const argument0 = javascriptGenerator.valueToCode(
+      block,
+      "A",
+      operator === "&&" ? Order.LOGICAL_AND : Order.LOGICAL_OR
+    ) || "false";
+    const argument1 = javascriptGenerator.valueToCode(
+      block,
+      "B",
+      operator === "&&" ? Order.LOGICAL_AND : Order.LOGICAL_OR
+    ) || "false";
 
-      const blockAsCustom = block as CustomBlock;
-      for (let i = 1; i <= blockAsCustom.elseifCount_; i++) {
-        const conditionI = javascriptGenerator.valueToCode(block, `IF${i}`, JavascriptOrder.ATOMIC) || "false";
-        const branchI = javascriptGenerator.statementToCode(block, `DO${i}`);
-        code += `else if (${conditionI}) {\n${branchI}}\n`;
-      }
+    const code = `${argument0} ${operator} ${argument1}`;
+    const order = operator === "&&" ? Order.LOGICAL_AND : Order.LOGICAL_OR;
+    return [code, order];
+  };
 
-      if (blockAsCustom.elseCount_) {
-        const elseBranch = javascriptGenerator.statementToCode(block, "ELSE");
-        code += `else {\n${elseBranch}}\n`;
-      }
+  // Block: logic_negate (NOT)
+  Blockly.Blocks["logic_negate"] = {
+    init() {
+      this.appendValueInput("BOOL").setCheck("Boolean").appendField("NOT");
+      this.setOutput(true, "Boolean");
+      this.setColour(210);
+    },
+  };
 
-      return code;
-    };
+  javascriptGenerator.forBlock["logic_negate"] = function (block: Blockly.Block) {
+    const argument0 = javascriptGenerator.valueToCode(block, "BOOL", Order.LOGICAL_NOT) || "false";
+    const code = `!${argument0}`;
+    return [code, Order.LOGICAL_NOT];
+  };
 
-    // PHP
-    phpGenerator.forBlock["controls_if"] = function (block: Blockly.Block) {
-      let code = "";
-      const condition = phpGenerator.valueToCode(block, "IF0", PhpOrder.ATOMIC) || "false";
-      const branch = phpGenerator.statementToCode(block, "DO0").trim();
-      code += `if (${condition}) {\n${branch}\n}`;
+  // Block: logic_boolean (true/false)
+  Blockly.Blocks["logic_boolean"] = {
+    init() {
+      this.appendDummyInput()
+        .appendField(new Blockly.FieldDropdown([
+          ["true", "TRUE"],
+          ["false", "FALSE"]
+        ]), "BOOL");
+      this.setOutput(true, "Boolean");
+      this.setColour(210);
+    },
+  };
 
-      const blockAsCustom = block as CustomBlock;
-      for (let i = 1; i <= blockAsCustom.elseifCount_; i++) {
-        const conditionI = phpGenerator.valueToCode(block, `IF${i}`, PhpOrder.ATOMIC) || "false";
-        const branchI = phpGenerator.statementToCode(block, `DO${i}`).trim();
-        code += ` elseif (${conditionI}) {\n${branchI}\n}`;
-      }
-
-      if (blockAsCustom.elseCount_) {
-        const elseBranch = phpGenerator.statementToCode(block, "ELSE").trim();
-        code += ` else {\n${elseBranch}\n}`;
-      }
-
-      code += "}";
-      return code;
-    };
-
-    // Python
-    pythonGenerator.forBlock["controls_if"] = function (block: Blockly.Block) {
-      let code = "";
-      const condition = pythonGenerator.valueToCode(block, "IF0", PythonOrder.ATOMIC) || "False";
-      const branch = pythonGenerator.statementToCode(block, "DO0").trim();
-      code += `if ${condition}:\n${branch}`;
-
-      const blockAsCustom = block as CustomBlock;
-      for (let i = 1; i <= blockAsCustom.elseifCount_; i++) {
-        const conditionI = pythonGenerator.valueToCode(block, `IF${i}`, PythonOrder.ATOMIC) || "False";
-        const branchI = pythonGenerator.statementToCode(block, `DO${i}`).trim();
-        code += `\nelif ${conditionI}:\n${branchI}`;
-      }
-
-      if (blockAsCustom.elseCount_) {
-        const elseBranch = pythonGenerator.statementToCode(block, "ELSE").trim();
-        code += `\nelse:\n${elseBranch}`;
-      }
-
-      return code + "\n";
-    };
-
-    // Lua
-    luaGenerator.forBlock["controls_if"] = function (block: Blockly.Block) {
-      let code = "";
-      const condition = luaGenerator.valueToCode(block, "IF0", LuaOrder.ATOMIC) || "false";
-      const branch = luaGenerator.statementToCode(block, "DO0").trim();
-      code += `if ${condition} then\n${branch}`;
-
-      const blockAsCustom = block as CustomBlock;
-      for (let i = 1; i <= blockAsCustom.elseifCount_; i++) {
-        const conditionI = luaGenerator.valueToCode(block, `IF${i}`, LuaOrder.ATOMIC) || "false";
-        const branchI = luaGenerator.statementToCode(block, `DO${i}`).trim();
-        code += `\nelseif ${conditionI} then\n${branchI}`;
-      }
-
-      if (blockAsCustom.elseCount_) {
-        const elseBranch = luaGenerator.statementToCode(block, "ELSE").trim();
-        code += `\nelse\n${elseBranch}`;
-      }
-
-      return code + "\nend\n";
-    };
-
-    // Dart
-    dartGenerator.forBlock["controls_if"] = function (block: Blockly.Block) {
-      let code = "";
-      const condition = dartGenerator.valueToCode(block, "IF0", DartOrder.ATOMIC) || "false";
-      const branch = dartGenerator.statementToCode(block, "DO0").trim();
-      code += `if (${condition}) {\n${branch}\n}`;
-
-      const blockAsCustom = block as CustomBlock;
-      for (let i = 1; i <= blockAsCustom.elseifCount_; i++) {
-        const conditionI = dartGenerator.valueToCode(block, `IF${i}`, DartOrder.ATOMIC) || "false";
-        const branchI = dartGenerator.statementToCode(block, `DO${i}`).trim();
-        code += ` else if (${conditionI}) {\n${branchI}\n}`;
-      }
-
-      if (blockAsCustom.elseCount_) {
-        const elseBranch = dartGenerator.statementToCode(block, "ELSE").trim();
-        code += ` else {\n${elseBranch}\n}`;
-      }
-
-      return code + "}";
-    };
-  }
+  javascriptGenerator.forBlock["logic_boolean"] = function (block: Blockly.Block) {
+    const code = block.getFieldValue("BOOL") === "TRUE" ? "true" : "false";
+    return [code, Order.ATOMIC];
+  };
 };
 
+// 🔹 Export the logic toolbox
 export const logicToolbox = `
   <xml>
-    <block type="controls_if"></block>
     <block type="logic_compare"></block>
+    <block type="logic_operation"></block>
+    <block type="logic_negate"></block>
+    <block type="logic_boolean"></block>
+    <block type="logic_if"></block>
+    <block type="logic_if_else"></block>
+    <block type="logic_if_elseif_else"></block>
   </xml>
 `;
