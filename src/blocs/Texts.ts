@@ -93,6 +93,54 @@ export const addTextBlocks = () => {
     const text = block.getFieldValue("TEXT");
     return [`"${text}"`, DartOrder.ATOMIC];
   };
+
+  // Bloque para crear una variable booleana
+  if (!Blockly.Blocks["logic_boolean"]) {
+    Blockly.Blocks["logic_boolean"] = {
+      init() {
+        this.appendDummyInput()
+          .appendField(
+            new Blockly.FieldDropdown([
+              ["verdadero", "true"],
+              ["falso", "false"],
+            ]),
+            "BOOL"
+          );
+        this.setOutput(true, "Boolean");
+        this.setColour(210); // Color similar a bloques lógicos
+      },
+    };
+  }
+
+  // JavaScript
+  javascriptGenerator.forBlock["logic_boolean"] = function (block: Blockly.Block) {
+    const boolValue = block.getFieldValue("BOOL");
+    return [boolValue, JavascriptOrder.ATOMIC];
+  };
+
+  // PHP
+  phpGenerator.forBlock["logic_boolean"] = function (block: Blockly.Block) {
+    const boolValue = block.getFieldValue("BOOL"); // "true" o "false"
+    return [boolValue === "true" ? "true" : "false", PhpOrder.ATOMIC];
+  };
+
+  // Python
+  pythonGenerator.forBlock["logic_boolean"] = function (block: Blockly.Block) {
+    const boolValue = block.getFieldValue("BOOL");
+    return [boolValue === "true" ? "True" : "False", PythonOrder.ATOMIC]; // Python usa True/False con mayúsculas
+  };
+
+  // Lua
+  luaGenerator.forBlock["logic_boolean"] = function (block: Blockly.Block) {
+    const boolValue = block.getFieldValue("BOOL");
+    return [boolValue, LuaOrder.ATOMIC];
+  };
+
+  // Dart
+  dartGenerator.forBlock["logic_boolean"] = function (block: Blockly.Block) {
+    const boolValue = block.getFieldValue("BOOL");
+    return [boolValue, DartOrder.ATOMIC];
+  };
 };
 
 export const textToolbox = `
@@ -100,5 +148,6 @@ export const textToolbox = `
     <block type="text_print"></block>
     <block type="text"></block>
     <block type="math_number"></block>
+    <block type="logic_boolean"></block>
   </xml>
 `;
