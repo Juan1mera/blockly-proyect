@@ -6,13 +6,11 @@ import { luaGenerator, Order as LuaOrder } from "blockly/lua";
 import { dartGenerator, Order as DartOrder } from "blockly/dart";
 
 export const addTextBlocks = () => {
-  // Bloque para mostrar texto
+  // Block: Print text
   if (!Blockly.Blocks["text_print"]) {
     Blockly.Blocks["text_print"] = {
       init() {
-        this.appendValueInput("TEXT")
-          .setCheck(null)
-          .appendField("Mostrar texto:");
+        this.appendValueInput("TEXT").setCheck(null).appendField("Print");
         this.setPreviousStatement(true, null);
         this.setNextStatement(true, null);
         this.setColour(160);
@@ -20,37 +18,32 @@ export const addTextBlocks = () => {
     };
   }
 
-  // JavaScript
   javascriptGenerator.forBlock["text_print"] = function (block: Blockly.Block) {
-    const text = javascriptGenerator.valueToCode(block, "TEXT", JavascriptOrder.ATOMIC) || '""';
+    const text = javascriptGenerator.valueToCode(block, "TEXT", JavascriptOrder.NONE) || '""';
     return `console.log(${text});\n`;
   };
 
-  // PHP
   phpGenerator.forBlock["text_print"] = function (block: Blockly.Block) {
-    const text = phpGenerator.valueToCode(block, "TEXT", PhpOrder.ATOMIC) || '""';
+    const text = phpGenerator.valueToCode(block, "TEXT", PhpOrder.NONE) || '""';
     return `echo ${text};\n`;
   };
 
-  // Python
   pythonGenerator.forBlock["text_print"] = function (block: Blockly.Block) {
-    const text = pythonGenerator.valueToCode(block, "TEXT", PythonOrder.ATOMIC) || '""';
+    const text = pythonGenerator.valueToCode(block, "TEXT", PythonOrder.NONE) || '""';
     return `print(${text})\n`;
   };
 
-  // Lua
   luaGenerator.forBlock["text_print"] = function (block: Blockly.Block) {
-    const text = luaGenerator.valueToCode(block, "TEXT", LuaOrder.ATOMIC) || '""';
+    const text = luaGenerator.valueToCode(block, "TEXT", LuaOrder.NONE) || '""';
     return `print(${text})\n`;
   };
 
-  // Dart
   dartGenerator.forBlock["text_print"] = function (block: Blockly.Block) {
-    const text = dartGenerator.valueToCode(block, "TEXT", DartOrder.ATOMIC) || '""';
+    const text = dartGenerator.valueToCode(block, "TEXT", DartOrder.NONE) || '""';
     return `print(${text});\n`;
   };
 
-  // Bloque para crear texto
+  // Block: Create text
   if (!Blockly.Blocks["text"]) {
     Blockly.Blocks["text"] = {
       init() {
@@ -64,90 +57,122 @@ export const addTextBlocks = () => {
     };
   }
 
-  // JavaScript
   javascriptGenerator.forBlock["text"] = function (block: Blockly.Block) {
     const text = block.getFieldValue("TEXT");
-    return [`"${text}"`, JavascriptOrder.ATOMIC];
+    return [`"${text}"`, JavascriptOrder.NONE];
   };
 
-  // PHP
   phpGenerator.forBlock["text"] = function (block: Blockly.Block) {
     const text = block.getFieldValue("TEXT");
-    return [`"${text}"`, PhpOrder.ATOMIC];
+    return [`"${text}"`, PhpOrder.NONE];
   };
 
-  // Python
   pythonGenerator.forBlock["text"] = function (block: Blockly.Block) {
     const text = block.getFieldValue("TEXT");
-    return [`"${text}"`, PythonOrder.ATOMIC];
+    return [`"${text}"`, PythonOrder.NONE];
   };
 
-  // Lua
   luaGenerator.forBlock["text"] = function (block: Blockly.Block) {
     const text = block.getFieldValue("TEXT");
-    return [`"${text}"`, LuaOrder.ATOMIC];
+    return [`"${text}"`, LuaOrder.NONE];
   };
 
-  // Dart
   dartGenerator.forBlock["text"] = function (block: Blockly.Block) {
     const text = block.getFieldValue("TEXT");
-    return [`"${text}"`, DartOrder.ATOMIC];
+    return [`"${text}"`, DartOrder.NONE];
   };
 
-  // Bloque para crear una variable booleana
-  if (!Blockly.Blocks["logic_boolean"]) {
-    Blockly.Blocks["logic_boolean"] = {
+  // Block: Set a variable
+  if (!Blockly.Blocks["variables_set"]) {
+    Blockly.Blocks["variables_set"] = {
       init() {
         this.appendDummyInput()
-          .appendField(
-            new Blockly.FieldDropdown([
-              ["verdadero", "true"],
-              ["falso", "false"],
-            ]),
-            "BOOL"
-          );
-        this.setOutput(true, "Boolean");
-        this.setColour(210); // Color similar a bloques lógicos
+          .appendField("Set variable")
+          .appendField(new Blockly.FieldVariable("myVar"), "VAR");
+        this.appendValueInput("VALUE").setCheck(null).appendField("to");
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour(330);
       },
     };
   }
 
-  // JavaScript
-  javascriptGenerator.forBlock["logic_boolean"] = function (block: Blockly.Block) {
-    const boolValue = block.getFieldValue("BOOL");
-    return [boolValue, JavascriptOrder.ATOMIC];
+  javascriptGenerator.forBlock["variables_set"] = function (block: Blockly.Block) {
+    const varName = javascriptGenerator.nameDB_?.getName(block.getFieldValue("VAR"), Blockly.VARIABLE_CATEGORY_NAME) || "var";
+    const value = javascriptGenerator.valueToCode(block, "VALUE", JavascriptOrder.NONE) || "null";
+    return `${varName} = ${value};\n`;
   };
 
-  // PHP
-  phpGenerator.forBlock["logic_boolean"] = function (block: Blockly.Block) {
-    const boolValue = block.getFieldValue("BOOL"); // "true" o "false"
-    return [boolValue === "true" ? "true" : "false", PhpOrder.ATOMIC];
+  phpGenerator.forBlock["variables_set"] = function (block: Blockly.Block) {
+    const varName = phpGenerator.nameDB_?.getName(block.getFieldValue("VAR"), Blockly.VARIABLE_CATEGORY_NAME) || "var";
+    const value = phpGenerator.valueToCode(block, "VALUE", PhpOrder.NONE) || "null";
+    return `$${varName} = ${value};\n`;
   };
 
-  // Python
-  pythonGenerator.forBlock["logic_boolean"] = function (block: Blockly.Block) {
-    const boolValue = block.getFieldValue("BOOL");
-    return [boolValue === "true" ? "True" : "False", PythonOrder.ATOMIC]; // Python usa True/False con mayúsculas
+  pythonGenerator.forBlock["variables_set"] = function (block: Blockly.Block) {
+    const varName = pythonGenerator.nameDB_?.getName(block.getFieldValue("VAR"), Blockly.VARIABLE_CATEGORY_NAME) || "var";
+    const value = pythonGenerator.valueToCode(block, "VALUE", PythonOrder.NONE) || "None";
+    return `${varName} = ${value}\n`;
   };
 
-  // Lua
-  luaGenerator.forBlock["logic_boolean"] = function (block: Blockly.Block) {
-    const boolValue = block.getFieldValue("BOOL");
-    return [boolValue, LuaOrder.ATOMIC];
+  luaGenerator.forBlock["variables_set"] = function (block: Blockly.Block) {
+    const varName = luaGenerator.nameDB_?.getName(block.getFieldValue("VAR"), Blockly.VARIABLE_CATEGORY_NAME) || "var";
+    const value = luaGenerator.valueToCode(block, "VALUE", LuaOrder.NONE) || "nil";
+    return `${varName} = ${value}\n`;
   };
 
-  // Dart
-  dartGenerator.forBlock["logic_boolean"] = function (block: Blockly.Block) {
-    const boolValue = block.getFieldValue("BOOL");
-    return [boolValue, DartOrder.ATOMIC];
+  dartGenerator.forBlock["variables_set"] = function (block: Blockly.Block) {
+    const varName = dartGenerator.nameDB_?.getName(block.getFieldValue("VAR"), Blockly.VARIABLE_CATEGORY_NAME) || "var";
+    const value = dartGenerator.valueToCode(block, "VALUE", DartOrder.NONE) || "null";
+    return `${varName} = ${value};\n`;
+  };
+
+  // Block: Get a variable
+  if (!Blockly.Blocks["variables_get"]) {
+    Blockly.Blocks["variables_get"] = {
+      init() {
+        this.appendDummyInput()
+          .appendField("Get variable")
+          .appendField(new Blockly.FieldVariable("myVar"), "VAR");
+        this.setOutput(true, null);
+        this.setColour(330);
+      },
+    };
+  }
+
+  javascriptGenerator.forBlock["variables_get"] = function (block: Blockly.Block) {
+    const varName = javascriptGenerator.nameDB_?.getName(block.getFieldValue("VAR"), Blockly.VARIABLE_CATEGORY_NAME) || "var";
+    return [varName, JavascriptOrder.NONE];
+  };
+
+  phpGenerator.forBlock["variables_get"] = function (block: Blockly.Block) {
+    const varName = phpGenerator.nameDB_?.getName(block.getFieldValue("VAR"), Blockly.VARIABLE_CATEGORY_NAME) || "var";
+    return [`$${varName}`, PhpOrder.NONE];
+  };
+
+  pythonGenerator.forBlock["variables_get"] = function (block: Blockly.Block) {
+    const varName = pythonGenerator.nameDB_?.getName(block.getFieldValue("VAR"), Blockly.VARIABLE_CATEGORY_NAME) || "var";
+    return [varName, PythonOrder.NONE];
+  };
+
+  luaGenerator.forBlock["variables_get"] = function (block: Blockly.Block) {
+    const varName = luaGenerator.nameDB_?.getName(block.getFieldValue("VAR"), Blockly.VARIABLE_CATEGORY_NAME) || "var";
+    return [varName, LuaOrder.NONE];
+  };
+
+  dartGenerator.forBlock["variables_get"] = function (block: Blockly.Block) {
+    const varName = dartGenerator.nameDB_?.getName(block.getFieldValue("VAR"), Blockly.VARIABLE_CATEGORY_NAME) || "var";
+    return [varName, DartOrder.NONE];
   };
 };
 
+// 🔹 Export the text toolbox
 export const textToolbox = `
   <xml>
     <block type="text_print"></block>
     <block type="text"></block>
     <block type="math_number"></block>
-    <block type="logic_boolean"></block>
+    <block type="variables_set"></block>
+    <block type="variables_get"></block>
   </xml>
 `;
