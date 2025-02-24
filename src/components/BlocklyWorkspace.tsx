@@ -1,14 +1,17 @@
 import { useEffect, useRef } from "react";
 import * as Blockly from "blockly";
 import "blockly/blocks";
-import { javascriptGenerator } from "blockly/javascript";
 import { addListBlocks, listToolbox } from "../blocs/Lists";
 import { addLogicBlocks, logicToolbox } from "../blocs/Logic";
 import { addLoopBlocks, loopToolbox } from "../blocs/Loops";
 import { addMathBlocks, mathToolbox } from "../blocs/Math";
 import { addTextBlocks, textToolbox } from "../blocs/Texts";
+import { getCodeFromWorkspace } from "../utils/getCodeFromWorkspace";
 
-const BlocklyWorkspace: React.FC<{ setCode: (code: string) => void }> = ({ setCode }) => {
+const BlocklyWorkspace: React.FC<{
+  setCode: (code: string) => void;
+  language: string;
+}> = ({ setCode, language }) => {
   const blocklyDiv = useRef<HTMLDivElement>(null);
   const workspace = useRef<Blockly.WorkspaceSvg | null>(null);
 
@@ -20,7 +23,6 @@ const BlocklyWorkspace: React.FC<{ setCode: (code: string) => void }> = ({ setCo
     addMathBlocks();
     addLogicBlocks();
 
-    // Combinamos los toolboxes eliminando las etiquetas <xml> internas
     const combinedToolbox = `
       <xml id="toolbox" style="display: none">
         ${loopToolbox.replace(/<\/?xml>/g, "")}
@@ -40,7 +42,7 @@ const BlocklyWorkspace: React.FC<{ setCode: (code: string) => void }> = ({ setCo
 
       workspace.current.addChangeListener(() => {
         if (workspace.current) {
-          const code = javascriptGenerator.workspaceToCode(workspace.current);
+          const code = getCodeFromWorkspace(workspace.current, language);
           setCode(code);
         }
       });
@@ -51,9 +53,9 @@ const BlocklyWorkspace: React.FC<{ setCode: (code: string) => void }> = ({ setCo
         workspace.current.dispose();
       }
     };
-  }, [setCode]);
+  }, [setCode, language]); // Añadimos 'language' como dependencia
 
-  return <div ref={blocklyDiv} style={{ height: "520px", width: "100%", }} />;
+  return <div ref={blocklyDiv} style={{ height: "520px", width: "100%" }} />;
 };
 
 export default BlocklyWorkspace;

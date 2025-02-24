@@ -5,11 +5,16 @@ import GraphicsView from "./components/GraphicsView";
 
 function App() {
   const [code, setCode] = useState<string>("");
+  const [language, setLanguage] = useState<string>("javascript");
 
   const runCode = () => {
     try {
-      // eslint-disable-next-line no-eval
-      eval(code);
+      if (language === "javascript") {
+        // eslint-disable-next-line no-eval
+        eval(code);
+      } else {
+        alert(`Ejecución no soportada para ${language} en este entorno.`);
+      }
     } catch (error) {
       console.error("Error ejecutando el código:", error);
       alert("Error al ejecutar el código.");
@@ -19,10 +24,23 @@ function App() {
   return (
     <div style={{ padding: "20px" }}>
       <h1>Blockly con Generación y Ejecución de Código</h1>
-      
+
       <div style={{ display: "flex", gap: "20px", width: "100%" }}>
-        <BlocklyWorkspace setCode={setCode} />
-        <CodeDisplay code={code} />
+        <BlocklyWorkspace setCode={setCode} language={language} />
+        <div style={{ width: "50%" }}>
+          <select
+            value={language}
+            onChange={(e) => setLanguage(e.target.value)}
+            style={{ width: "100%" }}
+          >
+            <option value="javascript">JavaScript</option>
+            <option value="python">Python</option>
+            <option value="php">PHP</option>
+            <option value="lua">Lua</option>
+            <option value="dart">Dart</option>
+          </select>
+          <CodeDisplay code={code} language={language} />
+        </div>
       </div>
 
       <button
