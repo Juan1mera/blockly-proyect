@@ -1,5 +1,5 @@
 export const colors = {
     morado: '#a277ff',
-    verde: '#ff6767',
-    rojo: '#61ffca',
+    verde: '#126a54',
+    rojo: '#ff6767',
 }
