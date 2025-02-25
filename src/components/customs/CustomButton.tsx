@@ -15,7 +15,7 @@ function CustomButton({ onClick, text, bgColor = colors.morado, key }: CustomBut
         style={{
             background: bgColor,
             color: "#fff",
-            padding: "10  px 20px",
+            padding: "10px 20px",
             marginLeft: "10px",
             border: "none",
             borderRadius: "5px",
