@@ -6,6 +6,7 @@ import { addLogicBlocks, logicToolbox } from "../blocs/Logic";
 import { addLoopBlocks, loopToolbox } from "../blocs/Loops";
 import { addMathBlocks, mathToolbox } from "../blocs/Math";
 import { addTextBlocks, textToolbox } from "../blocs/Texts";
+import { addMovementBlocks, movementToolbox } from "../blocs/Movements"; // Nuevos bloques
 import { getCodeFromWorkspace } from "../utils/getCodeFromWorkspace";
 
 const BlocklyWorkspace: React.FC<{
@@ -35,13 +36,13 @@ const BlocklyWorkspace: React.FC<{
     }
   };
 
-  // Inicialización del workspace
   useEffect(() => {
     addLoopBlocks();
     addListBlocks();
     addTextBlocks();
     addMathBlocks();
     addLogicBlocks();
+    addMovementBlocks(); // Registramos los nuevos bloques
 
     const combinedToolbox = `
       <xml id="toolbox" style="display: none">
@@ -50,6 +51,7 @@ const BlocklyWorkspace: React.FC<{
         ${textToolbox.replace(/<\/?xml>/g, "")}
         ${mathToolbox.replace(/<\/?xml>/g, "")}
         ${logicToolbox.replace(/<\/?xml>/g, "")}
+        ${movementToolbox.replace(/<\/?xml>/g, "")} // Añadimos el toolbox de movimientos
       </xml>
     `;
 
@@ -67,11 +69,10 @@ const BlocklyWorkspace: React.FC<{
         }
       });
 
-      // Cargar XML inicial si está disponible
       if (loadBlocks) {
         loadXml(loadBlocks);
       } else {
-        setCode(""); // Asegurar que CodeDisplay esté vacío si no hay bloques
+        setCode("");
       }
     }
 
@@ -81,9 +82,8 @@ const BlocklyWorkspace: React.FC<{
         workspace.current = null;
       }
     };
-  }, [setCode]); // Solo depende de setCode, no de loadBlocks ni language inicialmente
+  }, [setCode]);
 
-  // Actualizar código cuando cambia el lenguaje, sin afectar el workspace
   useEffect(() => {
     if (workspace.current) {
       const code = getCodeFromWorkspace(workspace.current, language);
@@ -91,12 +91,11 @@ const BlocklyWorkspace: React.FC<{
     }
   }, [language, setCode]);
 
-  // Cargar bloques desde loadBlocks y actualizar el código
   useEffect(() => {
     if (workspace.current && loadBlocks !== undefined) {
       loadXml(loadBlocks);
     }
-  }, [loadBlocks, setCode]); // No incluimos language aquí para evitar recargas innecesarias
+  }, [loadBlocks, setCode]);
 
   return <div ref={blocklyDiv} style={{ height: "520px", width: "100%" }} />;
 };

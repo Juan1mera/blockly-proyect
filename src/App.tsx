@@ -20,6 +20,7 @@ function App() {
       ? JSON.parse(savedSections)
       : { 1: "", 2: "", 3: "", 4: "", 5: "" };
   });
+  const [position, setPosition] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
 
   // Guardar sections en localStorage cada vez que cambie
   useEffect(() => {
@@ -36,8 +37,16 @@ function App() {
 
     try {
       if (language === "javascript") {
-        // eslint-disable-next-line no-eval
-        eval(code);
+        // Definimos las funciones de movimiento en el ámbito del Function
+        const script = `
+          const moveRight = () => setPosition((prev) => ({ ...prev, x: prev.x + 1 }));
+          const moveLeft = () => setPosition((prev) => ({ ...prev, x: prev.x - 1 }));
+          const moveUp = () => setPosition((prev) => ({ ...prev, y: prev.y - 1 }));
+          const moveDown = () => setPosition((prev) => ({ ...prev, y: prev.y + 1 }));
+          ${code}
+        `;
+        const fn = new Function("setPosition", script);
+        fn(setPosition); // Pasamos setPosition al ámbito del Function
       } else {
         alert(`Ejecución no soportada para ${language} en este entorno.`);
       }
@@ -73,8 +82,9 @@ function App() {
       <div style={{ marginBottom: "20px" }}>
         <label>Sección: </label>
         {[1, 2, 3, 4, 5].map((section) => (
-          <CustomButton 
-            onClick={() => handleSectionChange(section)} 
+          <CustomButton
+            key={section}
+            onClick={() => handleSectionChange(section)}
             text={String(section)}
             style={{
               background: currentSection === section ? colors.morado : "#ccc",
@@ -82,7 +92,11 @@ function App() {
             }}
           />
         ))}
-        <CustomButton onClick={saveSection} text={"Guardar Seccion " + currentSection} bgColor={colors.verde} />
+        <CustomButton
+          onClick={saveSection}
+          text={"Guardar Seccion " + currentSection}
+          bgColor={colors.verde}
+        />
       </div>
 
       <div style={{ display: "flex", gap: "20px", width: "100%" }}>
@@ -99,8 +113,32 @@ function App() {
       <CustomButton onClick={runCode} text="Ejecutar Código" />
 
       <ConsoleBlockView consoleOutput={consoleOutput} />
-      <XmlDataBlockView sections={sections} currentSection={currentSection} />
 
+      {/* Grid simple para visualizar el movimiento */}
+      <div
+        style={{
+          marginTop: "20px",
+          width: "300px",
+          height: "300px",
+          border: "1px solid #ccc",
+          position: "relative",
+          background: "#f0f0f0",
+        }}
+      >
+        <div
+          style={{
+            width: "20px",
+            height: "20px",
+            background: "red",
+            position: "absolute",
+            left: `${position.x * 20}px`,
+            top: `${position.y * 20}px`,
+            transition: "all 0.3s ease",
+          }}
+        />
+      </div>
+
+      <XmlDataBlockView sections={sections} currentSection={currentSection} />
       <GraphicsView />
     </div>
   );
