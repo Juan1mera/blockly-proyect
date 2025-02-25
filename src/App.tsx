@@ -6,6 +6,7 @@ import * as Blockly from "blockly";
 import CustomButton from "./components/customs/CustomButton";
 import { colors } from "./constants/colors";
 import ConsoleBlockView from "./components/ConsoleBlockView";
+import XmlDataBlockView from "./components/XmlDataBlockView";
 
 function App() {
   const [code, setCode] = useState<string>("");
@@ -107,27 +108,7 @@ function App() {
       <CustomButton onClick={runCode} text="Ejecutar Código" />
 
       <ConsoleBlockView consoleOutput={consoleOutput} />
-
-      <div
-        style={{
-          marginTop: "20px",
-          padding: "10px",
-          background: "#1e1e1e",
-          color: "#fff",
-          fontFamily: "monospace",
-          borderRadius: "5px",
-          maxHeight: "200px",
-          overflowY: "auto",
-          whiteSpace: "pre-wrap",
-        }}
-      >
-        <h3>Datos de los Bloques (Sección {currentSection}):</h3>
-        {sections[currentSection] ? (
-          <pre>{sections[currentSection]}</pre>
-        ) : (
-          <div>No hay bloques guardados en esta sección.</div>
-        )}
-      </div>
+      <XmlDataBlockView sections={sections} currentSection={currentSection} />
 
       <GraphicsView />
     </div>
