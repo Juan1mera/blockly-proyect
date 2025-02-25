@@ -3,6 +3,8 @@ import BlocklyWorkspace from "./components/BlocklyWorkspace";
 import CodeDisplay from "./components/CodeDisplay";
 import GraphicsView from "./components/GraphicsView";
 import * as Blockly from "blockly";
+import CustomButton from "./components/customs/CustomButton";
+import { colors } from "./constants/colors";
 
 function App() {
   const [code, setCode] = useState<string>("");
@@ -84,20 +86,7 @@ function App() {
             {section}
           </button>
         ))}
-        <button
-          onClick={saveSection}
-          style={{
-            background: "#4caf50",
-            color: "#fff",
-            padding: "5px 10px",
-            marginLeft: "10px",
-            border: "none",
-            borderRadius: "5px",
-            cursor: "pointer",
-          }}
-        >
-          Guardar Sección {currentSection}
-        </button>
+        <CustomButton onClick={saveSection} text={"Guardar Seccion " + currentSection} bgColor={colors.verde} />
       </div>
 
       <div style={{ display: "flex", gap: "20px", width: "100%" }}>
@@ -121,22 +110,7 @@ function App() {
           <CodeDisplay code={code} language={language} />
         </div>
       </div>
-
-      <button
-        onClick={runCode}
-        style={{
-          background: "#61dafb",
-          color: "#000",
-          padding: "10px 20px",
-          fontSize: "16px",
-          border: "none",
-          borderRadius: "5px",
-          cursor: "pointer",
-          marginTop: "10px",
-        }}
-      >
-        Ejecutar Código
-      </button>
+      <CustomButton onClick={runCode} text="Ejecutar Código" />
 
       <div
         style={{
