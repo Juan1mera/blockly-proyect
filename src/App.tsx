@@ -27,7 +27,7 @@ function App() {
     localStorage.setItem("blockly_sections", JSON.stringify(sections));
   }, [sections]);
 
-  const runCode = () => {
+  const runCode = async () => {
     setConsoleOutput([]);
     const originalConsoleLog = console.log;
     console.log = (...args: any[]) => {
@@ -37,16 +37,24 @@ function App() {
 
     try {
       if (language === "javascript") {
-        // Definimos las funciones de movimiento en el ámbito del Function
-        const script = `
-          const moveRight = () => setPosition((prev) => ({ ...prev, x: prev.x + 1 }));
-          const moveLeft = () => setPosition((prev) => ({ ...prev, x: prev.x - 1 }));
-          const moveUp = () => setPosition((prev) => ({ ...prev, y: prev.y - 1 }));
-          const moveDown = () => setPosition((prev) => ({ ...prev, y: prev.y + 1 }));
-          ${code}
-        `;
-        const fn = new Function("setPosition", script);
-        fn(setPosition); // Pasamos setPosition al ámbito del Function
+        // Dividimos el código en líneas y filtramos las instrucciones válidas
+        const instructions = code
+          .split("\n")
+          .map((line) => line.trim())
+          .filter((line) => line.endsWith(";") && line.length > 0);
+
+        // Ejecutamos cada instrucción paso a paso con un delay
+        for (const instruction of instructions) {
+          const fn = new Function("setPosition", `
+            const moveRight = () => setPosition((prev) => ({ ...prev, x: prev.x + 1 }));
+            const moveLeft = () => setPosition((prev) => ({ ...prev, x: prev.x - 1 }));
+            const moveUp = () => setPosition((prev) => ({ ...prev, y: prev.y - 1 }));
+            const moveDown = () => setPosition((prev) => ({ ...prev, y: prev.y + 1 }));
+            ${instruction}
+          `);
+          fn(setPosition);
+          await new Promise((resolve) => setTimeout(resolve, 500)); // Delay de 500ms entre movimientos
+        }
       } else {
         alert(`Ejecución no soportada para ${language} en este entorno.`);
       }
