@@ -5,7 +5,7 @@ interface CustomButtonProps {
     text: string;
     bgColor?: string;
     key?: number;
-    style: React.CSSProperties;
+    style?: React.CSSProperties;
 }
 
 function CustomButton({ onClick, text, bgColor = colors.morado, key, style }: CustomButtonProps) {
