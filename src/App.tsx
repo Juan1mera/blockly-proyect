@@ -7,6 +7,7 @@ import CustomButton from "./components/customs/CustomButton";
 import { colors } from "./constants/colors";
 import ConsoleBlockView from "./components/ConsoleBlockView";
 import XmlDataBlockView from "./components/XmlDataBlockView";
+import LenguajeSelect from "./views/blocks/components/LenguajeSelect";
 
 function App() {
   const [code, setCode] = useState<string>("");
@@ -91,17 +92,7 @@ function App() {
           loadBlocks={sections[currentSection]}
         />
         <div style={{ width: "50%" }}>
-          <select
-            value={language}
-            onChange={(e) => setLanguage(e.target.value)}
-            style={{ width: "100%" }}
-          >
-            <option value="javascript">JavaScript</option>
-            <option value="python">Python</option>
-            <option value="php">PHP</option>
-            <option value="lua">Lua</option>
-            <option value="dart">Dart</option>
-          </select>
+          <LenguajeSelect language={language} onChange={setLanguage} />
           <CodeDisplay code={code} language={language} />
         </div>
       </div>
