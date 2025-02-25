@@ -1,5 +1,9 @@
 import * as Blockly from "blockly";
-import { javascriptGenerator, } from "blockly/javascript";
+import { javascriptGenerator } from "blockly/javascript";
+import { pythonGenerator} from "blockly/python";
+import { phpGenerator,} from "blockly/php";
+import { luaGenerator,} from "blockly/lua";
+import { dartGenerator} from "blockly/dart";
 
 export const addMovementBlocks = () => {
   // Bloque para mover a la derecha
@@ -18,6 +22,22 @@ export const addMovementBlocks = () => {
     return "moveRight();\n";
   };
 
+  pythonGenerator.forBlock["move_right"] = function () {
+    return "moveRight()\n"; // Python genera una llamada a función
+  };
+
+  phpGenerator.forBlock["move_right"] = function () {
+    return "moveRight();\n"; // PHP genera una llamada a función
+  };
+
+  luaGenerator.forBlock["move_right"] = function () {
+    return "moveRight()\n"; // Lua genera una llamada a función
+  };
+
+  dartGenerator.forBlock["move_right"] = function () {
+    return "moveRight();\n"; // Dart genera una llamada a función
+  };
+
   // Bloque para mover a la izquierda
   if (!Blockly.Blocks["move_left"]) {
     Blockly.Blocks["move_left"] = {
@@ -31,6 +51,22 @@ export const addMovementBlocks = () => {
   }
 
   javascriptGenerator.forBlock["move_left"] = function () {
+    return "moveLeft();\n";
+  };
+
+  pythonGenerator.forBlock["move_left"] = function () {
+    return "moveLeft()\n";
+  };
+
+  phpGenerator.forBlock["move_left"] = function () {
+    return "moveLeft();\n";
+  };
+
+  luaGenerator.forBlock["move_left"] = function () {
+    return "moveLeft()\n";
+  };
+
+  dartGenerator.forBlock["move_left"] = function () {
     return "moveLeft();\n";
   };
 
@@ -50,6 +86,22 @@ export const addMovementBlocks = () => {
     return "moveUp();\n";
   };
 
+  pythonGenerator.forBlock["move_up"] = function () {
+    return "moveUp()\n";
+  };
+
+  phpGenerator.forBlock["move_up"] = function () {
+    return "moveUp();\n";
+  };
+
+  luaGenerator.forBlock["move_up"] = function () {
+    return "moveUp()\n";
+  };
+
+  dartGenerator.forBlock["move_up"] = function () {
+    return "moveUp();\n";
+  };
+
   // Bloque para mover abajo
   if (!Blockly.Blocks["move_down"]) {
     Blockly.Blocks["move_down"] = {
@@ -63,6 +115,22 @@ export const addMovementBlocks = () => {
   }
 
   javascriptGenerator.forBlock["move_down"] = function () {
+    return "moveDown();\n";
+  };
+
+  pythonGenerator.forBlock["move_down"] = function () {
+    return "moveDown()\n";
+  };
+
+  phpGenerator.forBlock["move_down"] = function () {
+    return "moveDown();\n";
+  };
+
+  luaGenerator.forBlock["move_down"] = function () {
+    return "moveDown()\n";
+  };
+
+  dartGenerator.forBlock["move_down"] = function () {
     return "moveDown();\n";
   };
 };
