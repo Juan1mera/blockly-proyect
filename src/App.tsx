@@ -70,21 +70,14 @@ function App() {
       <div style={{ marginBottom: "20px" }}>
         <label>Sección: </label>
         {[1, 2, 3, 4, 5].map((section) => (
-          <button
-            key={section}
-            onClick={() => handleSectionChange(section)}
+          <CustomButton 
+            onClick={() => handleSectionChange(section)} 
+            text={String(section)}
             style={{
-              background: currentSection === section ? "#61dafb" : "#ccc",
-              color: "#000",
-              padding: "5px 10px",
+              background: currentSection === section ? colors.morado : "#ccc",
               margin: "0 5px",
-              border: "none",
-              borderRadius: "5px",
-              cursor: "pointer",
             }}
-          >
-            {section}
-          </button>
+          />
         ))}
         <CustomButton onClick={saveSection} text={"Guardar Seccion " + currentSection} bgColor={colors.verde} />
       </div>
