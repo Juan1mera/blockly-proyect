@@ -22,7 +22,6 @@ function App() {
   });
   const [position, setPosition] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
 
-  // Guardar sections en localStorage cada vez que cambie
   useEffect(() => {
     localStorage.setItem("blockly_sections", JSON.stringify(sections));
   }, [sections]);
@@ -30,31 +29,65 @@ function App() {
   const runCode = async () => {
     setConsoleOutput([]);
     const originalConsoleLog = console.log;
+    let delayQueue: Promise<void> = Promise.resolve();
+
+    // Redefinimos las funciones de movimiento con delay
+    const moveRight = () => {
+      delayQueue = delayQueue.then(() =>
+        new Promise((resolve) => {
+          setPosition((prev) => ({ ...prev, x: prev.x + 1 }));
+          setTimeout(resolve, 500); // Delay de 500ms
+        })
+      );
+    };
+    const moveLeft = () => {
+      delayQueue = delayQueue.then(() =>
+        new Promise((resolve) => {
+          setPosition((prev) => ({ ...prev, x: prev.x - 1 }));
+          setTimeout(resolve, 500);
+        })
+      );
+    };
+    const moveUp = () => {
+      delayQueue = delayQueue.then(() =>
+        new Promise((resolve) => {
+          setPosition((prev) => ({ ...prev, y: prev.y - 1 }));
+          setTimeout(resolve, 500);
+        })
+      );
+    };
+    const moveDown = () => {
+      delayQueue = delayQueue.then(() =>
+        new Promise((resolve) => {
+          setPosition((prev) => ({ ...prev, y: prev.y + 1 }));
+          setTimeout(resolve, 500);
+        })
+      );
+    };
+
+    // Redefinimos console.log con delay
     console.log = (...args: any[]) => {
-      setConsoleOutput((prev) => [...prev, args.join(" ")]);
-      originalConsoleLog.apply(console, args);
+      delayQueue = delayQueue.then(() =>
+        new Promise((resolve) => {
+          setConsoleOutput((prev) => [...prev, args.join(" ")]);
+          originalConsoleLog.apply(console, args);
+          setTimeout(resolve, 500);
+        })
+      );
     };
 
     try {
       if (language === "javascript") {
-        // Dividimos el código en líneas y filtramos las instrucciones válidas
-        const instructions = code
-          .split("\n")
-          .map((line) => line.trim())
-          .filter((line) => line.endsWith(";") && line.length > 0);
-
-        // Ejecutamos cada instrucción paso a paso con un delay
-        for (const instruction of instructions) {
-          const fn = new Function("setPosition", `
-            const moveRight = () => setPosition((prev) => ({ ...prev, x: prev.x + 1 }));
-            const moveLeft = () => setPosition((prev) => ({ ...prev, x: prev.x - 1 }));
-            const moveUp = () => setPosition((prev) => ({ ...prev, y: prev.y - 1 }));
-            const moveDown = () => setPosition((prev) => ({ ...prev, y: prev.y + 1 }));
-            ${instruction}
-          `);
-          fn(setPosition);
-          await new Promise((resolve) => setTimeout(resolve, 500)); // Delay de 500ms entre movimientos
-        }
+        const fn = new Function(
+          "moveRight",
+          "moveLeft",
+          "moveUp",
+          "moveDown",
+          "console",
+          code
+        );
+        fn(moveRight, moveLeft, moveUp, moveDown, console);
+        await delayQueue; // Esperamos a que todos los movimientos terminen
       } else {
         alert(`Ejecución no soportada para ${language} en este entorno.`);
       }
@@ -122,7 +155,6 @@ function App() {
 
       <ConsoleBlockView consoleOutput={consoleOutput} />
 
-      {/* Grid simple para visualizar el movimiento */}
       <div
         style={{
           marginTop: "20px",
