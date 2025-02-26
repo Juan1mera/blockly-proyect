@@ -1,11 +1,12 @@
 import { useBlocklyLogic } from "./hooks/useBlocklyLogic";
-import { useObjectState } from "./hooks/useObjectState";
+import { useCombinedObjectState } from "./hooks/useCombinedObjectState";
 import SectionSelector from "./components/SectionSelector";
 import CodeExecutionArea from "./components/CodeExecutionArea";
 import ConsoleBlockView from "./components/ConsoleBlockView";
-import XmlDataBlockView from "./components/XmlDataBlockView";
-import Object2DView from "./components/Object2DView";
-import GraphicsView from "./components/GraphicsView";
+// import XmlDataBlockView from "./components/XmlDataBlockView";
+// import Object2DView from "./components/Object2DView";
+// import GraphicsView from "./components/GraphicsView";
+import ThreeScene from "./components/3d/ThreeScene";
 
 function App() {
   const {
@@ -21,7 +22,8 @@ function App() {
     handleSectionChange,
   } = useBlocklyLogic();
 
-  const { objects, runCode } = useObjectState(setConsoleOutput);
+  // const { objects2D, objects3D, runCode } = useCombinedObjectState(setConsoleOutput);
+  const {objects3D, runCode} = useCombinedObjectState(setConsoleOutput)
 
   const handleRunCode = () => runCode(code, language);
 
@@ -42,9 +44,11 @@ function App() {
         onRunCode={handleRunCode}
       />
       <ConsoleBlockView consoleOutput={consoleOutput} />
-      <Object2DView objects={objects} />
-      <XmlDataBlockView sections={sections} currentSection={currentSection} />
-      <GraphicsView />
+      {/* <Object2DView objects={objects2D} /> */}
+      <ThreeScene objects={objects3D} />
+      {/* <XmlDataBlockView sections={sections} currentSection={currentSection} /> */}
+      {/* <GraphicsView /> */}
+      <div style={{width: "100%", height: "100px"}}></div>
     </div>
   );
 }
