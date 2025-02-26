@@ -6,7 +6,7 @@ import { addLogicBlocks, logicToolbox } from "../blocs/Logic";
 import { addLoopBlocks, loopToolbox } from "../blocs/Loops";
 import { addMathBlocks, mathToolbox } from "../blocs/Math";
 import { addTextBlocks, textToolbox } from "../blocs/Texts";
-import { addMovementBlocks, movementToolbox } from "../blocs/Movements"; // Nuevos bloques
+import { addMovementBlocks, movementToolbox } from "../blocs/Movements";
 import { getCodeFromWorkspace } from "../utils/getCodeFromWorkspace";
 
 const BlocklyWorkspace: React.FC<{
@@ -42,7 +42,7 @@ const BlocklyWorkspace: React.FC<{
     addTextBlocks();
     addMathBlocks();
     addLogicBlocks();
-    addMovementBlocks(); // Registramos los nuevos bloques
+    addMovementBlocks(); // Incluye bloques 2D y 3D
 
     const combinedToolbox = `
       <xml id="toolbox" style="display: none">
@@ -51,7 +51,7 @@ const BlocklyWorkspace: React.FC<{
         ${textToolbox.replace(/<\/?xml>/g, "")}
         ${mathToolbox.replace(/<\/?xml>/g, "")}
         ${logicToolbox.replace(/<\/?xml>/g, "")}
-        ${movementToolbox.replace(/<\/?xml>/g, "")} // Añadimos el toolbox de movimientos
+        ${movementToolbox.replace(/<\/?xml>/g, "")}
       </xml>
     `;
 
