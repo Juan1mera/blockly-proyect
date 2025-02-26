@@ -9,6 +9,12 @@ import ConsoleBlockView from "./components/ConsoleBlockView";
 import XmlDataBlockView from "./components/XmlDataBlockView";
 import LenguajeSelect from "./views/blocks/components/LenguajeSelect";
 
+interface ObjectState {
+  x: number;
+  y: number;
+  color: string;
+}
+
 function App() {
   const [code, setCode] = useState<string>("");
   const [language, setLanguage] = useState<string>("javascript");
@@ -20,7 +26,7 @@ function App() {
       ? JSON.parse(savedSections)
       : { 1: "", 2: "", 3: "", 4: "", 5: "" };
   });
-  const [position, setPosition] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+  const [objects, setObjects] = useState<{ [id: string]: ObjectState }>({}); // Estado de los objetos
 
   useEffect(() => {
     localStorage.setItem("blockly_sections", JSON.stringify(sections));
@@ -31,41 +37,74 @@ function App() {
     const originalConsoleLog = console.log;
     let delayQueue: Promise<void> = Promise.resolve();
 
-    // Redefinimos las funciones de movimiento con delay
-    const moveRight = () => {
-      delayQueue = delayQueue.then(() =>
-        new Promise((resolve) => {
-          setPosition((prev) => ({ ...prev, x: prev.x + 1 }));
-          setTimeout(resolve, 500); // Delay de 500ms
-        })
-      );
+    const createObject = (id: string, x: number, y: number, color: string) => {
+      setObjects((prev) => ({
+        ...prev,
+        [id]: { x, y, color },
+      }));
     };
-    const moveLeft = () => {
+
+    const moveRight = (id: string) => {
       delayQueue = delayQueue.then(() =>
         new Promise((resolve) => {
-          setPosition((prev) => ({ ...prev, x: prev.x - 1 }));
-          setTimeout(resolve, 500);
-        })
-      );
-    };
-    const moveUp = () => {
-      delayQueue = delayQueue.then(() =>
-        new Promise((resolve) => {
-          setPosition((prev) => ({ ...prev, y: prev.y - 1 }));
-          setTimeout(resolve, 500);
-        })
-      );
-    };
-    const moveDown = () => {
-      delayQueue = delayQueue.then(() =>
-        new Promise((resolve) => {
-          setPosition((prev) => ({ ...prev, y: prev.y + 1 }));
+          setObjects((prev) => ({
+            ...prev,
+            [id]: { ...prev[id], x: Math.min(prev[id].x + 1, 14) },
+          }));
           setTimeout(resolve, 500);
         })
       );
     };
 
-    // Redefinimos console.log con delay
+    const moveLeft = (id: string) => {
+      delayQueue = delayQueue.then(() =>
+        new Promise((resolve) => {
+          setObjects((prev) => ({
+            ...prev,
+            [id]: { ...prev[id], x: Math.max(prev[id].x - 1, 0) },
+          }));
+          setTimeout(resolve, 500);
+        })
+      );
+    };
+
+    const moveUp = (id: string) => {
+      delayQueue = delayQueue.then(() =>
+        new Promise((resolve) => {
+          setObjects((prev) => ({
+            ...prev,
+            [id]: { ...prev[id], y: Math.max(prev[id].y - 1, 0) },
+          }));
+          setTimeout(resolve, 500);
+        })
+      );
+    };
+
+    const moveDown = (id: string) => {
+      delayQueue = delayQueue.then(() =>
+        new Promise((resolve) => {
+          setObjects((prev) => ({
+            ...prev,
+            [id]: { ...prev[id], y: Math.min(prev[id].y + 1, 14) },
+          }));
+          setTimeout(resolve, 500);
+        })
+      );
+    };
+
+    const collides = (id1: string, id2: string) => {
+      const obj1 = objects[id1];
+      const obj2 = objects[id2];
+      if (!obj1 || !obj2) return false;
+      return obj1.x === obj2.x && obj1.y === obj2.y;
+    };
+
+    const touchesEdge = (id: string) => {
+      const obj = objects[id];
+      if (!obj) return false;
+      return obj.x === 0 || obj.x === 14 || obj.y === 0 || obj.y === 14;
+    };
+
     console.log = (...args: any[]) => {
       delayQueue = delayQueue.then(() =>
         new Promise((resolve) => {
@@ -79,15 +118,18 @@ function App() {
     try {
       if (language === "javascript") {
         const fn = new Function(
+          "createObject",
           "moveRight",
           "moveLeft",
           "moveUp",
           "moveDown",
+          "collides",
+          "touchesEdge",
           "console",
           code
         );
-        fn(moveRight, moveLeft, moveUp, moveDown, console);
-        await delayQueue; // Esperamos a que todos los movimientos terminen
+        fn(createObject, moveRight, moveLeft, moveUp, moveDown, collides, touchesEdge, console);
+        await delayQueue;
       } else {
         alert(`Ejecución no soportada para ${language} en este entorno.`);
       }
@@ -165,17 +207,20 @@ function App() {
           background: "#f0f0f0",
         }}
       >
-        <div
-          style={{
-            width: "20px",
-            height: "20px",
-            background: "red",
-            position: "absolute",
-            left: `${position.x * 20}px`,
-            top: `${position.y * 20}px`,
-            transition: "all 0.3s ease",
-          }}
-        />
+        {Object.entries(objects).map(([id, { x, y, color }]) => (
+          <div
+            key={id}
+            style={{
+              width: "20px",
+              height: "20px",
+              background: color,
+              position: "absolute",
+              left: `${x * 20}px`,
+              top: `${y * 20}px`,
+              transition: "all 0.3s ease",
+            }}
+          />
+        ))}
       </div>
 
       <XmlDataBlockView sections={sections} currentSection={currentSection} />
