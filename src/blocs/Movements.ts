@@ -5,7 +5,6 @@ import { phpGenerator } from "blockly/php";
 import { luaGenerator } from "blockly/lua";
 import { dartGenerator } from "blockly/dart";
 
-// Definimos el tipo explícitamente para COLORS
 const COLORS: [string, string][] = [
   ["Rojo", "red"],
   ["Azul", "blue"],
@@ -14,19 +13,19 @@ const COLORS: [string, string][] = [
 ];
 
 export const addMovementBlocks = () => {
-  // Bloque para crear un objeto
+  // Bloque para crear un objeto 2D
   if (!Blockly.Blocks["create_object"]) {
     Blockly.Blocks["create_object"] = {
       init() {
         this.appendDummyInput()
-          .appendField("Crear objeto ID:")
+          .appendField("Crear objeto 2D ID:")
           .appendField(new Blockly.FieldTextInput("obj1"), "ID")
           .appendField("en x:")
-          .appendField(new Blockly.FieldNumber(0, 0, 14), "X") // Límite del grid: 0-14 (300px)
+          .appendField(new Blockly.FieldNumber(0, 0, 14), "X")
           .appendField("y:")
           .appendField(new Blockly.FieldNumber(0, 0, 14), "Y")
           .appendField("color:")
-          .appendField(new Blockly.FieldDropdown(COLORS), "COLOR"); // Usamos COLORS con tipo correcto
+          .appendField(new Blockly.FieldDropdown(COLORS), "COLOR");
         this.setPreviousStatement(true, null);
         this.setNextStatement(true, null);
         this.setColour(120);
@@ -74,12 +73,12 @@ export const addMovementBlocks = () => {
     return `createObject("${id}", ${x}, ${y}, "${color}");\n`;
   };
 
-  // Bloque para mover a la derecha
+  // Bloque para mover a la derecha (2D)
   if (!Blockly.Blocks["move_right"]) {
     Blockly.Blocks["move_right"] = {
       init() {
         this.appendDummyInput()
-          .appendField("Mover a la derecha objeto:")
+          .appendField("Mover a la derecha 2D objeto:")
           .appendField(new Blockly.FieldTextInput("obj1"), "ID");
         this.setPreviousStatement(true, null);
         this.setNextStatement(true, null);
@@ -113,12 +112,12 @@ export const addMovementBlocks = () => {
     return `moveRight("${id}");\n`;
   };
 
-  // Bloque para mover a la izquierda
+  // Bloque para mover a la izquierda (2D)
   if (!Blockly.Blocks["move_left"]) {
     Blockly.Blocks["move_left"] = {
       init() {
         this.appendDummyInput()
-          .appendField("Mover a la izquierda objeto:")
+          .appendField("Mover a la izquierda 2D objeto:")
           .appendField(new Blockly.FieldTextInput("obj1"), "ID");
         this.setPreviousStatement(true, null);
         this.setNextStatement(true, null);
@@ -152,12 +151,12 @@ export const addMovementBlocks = () => {
     return `moveLeft("${id}");\n`;
   };
 
-  // Bloque para mover arriba
+  // Bloque para mover arriba (2D)
   if (!Blockly.Blocks["move_up"]) {
     Blockly.Blocks["move_up"] = {
       init() {
         this.appendDummyInput()
-          .appendField("Mover arriba objeto:")
+          .appendField("Mover arriba 2D objeto:")
           .appendField(new Blockly.FieldTextInput("obj1"), "ID");
         this.setPreviousStatement(true, null);
         this.setNextStatement(true, null);
@@ -191,12 +190,12 @@ export const addMovementBlocks = () => {
     return `moveUp("${id}");\n`;
   };
 
-  // Bloque para mover abajo
+  // Bloque para mover abajo (2D)
   if (!Blockly.Blocks["move_down"]) {
     Blockly.Blocks["move_down"] = {
       init() {
         this.appendDummyInput()
-          .appendField("Mover abajo objeto:")
+          .appendField("Mover abajo 2D objeto:")
           .appendField(new Blockly.FieldTextInput("obj1"), "ID");
         this.setPreviousStatement(true, null);
         this.setNextStatement(true, null);
@@ -230,12 +229,12 @@ export const addMovementBlocks = () => {
     return `moveDown("${id}");\n`;
   };
 
-  // Bloque condicional: Si el objeto choca con otro
+  // Bloque condicional: Si el objeto choca con otro (2D)
   if (!Blockly.Blocks["if_collides"]) {
     Blockly.Blocks["if_collides"] = {
       init() {
         this.appendDummyInput()
-          .appendField("Si objeto:")
+          .appendField("Si objeto 2D:")
           .appendField(new Blockly.FieldTextInput("obj1"), "ID1")
           .appendField("choca con:")
           .appendField(new Blockly.FieldTextInput("obj2"), "ID2");
@@ -282,12 +281,12 @@ export const addMovementBlocks = () => {
     return `if (collides("${id1}", "${id2}")) {\n${branch}\n}\n`;
   };
 
-  // Bloque condicional: Si el objeto toca un borde
+  // Bloque condicional: Si el objeto toca un borde (2D)
   if (!Blockly.Blocks["if_touches_edge"]) {
     Blockly.Blocks["if_touches_edge"] = {
       init() {
         this.appendDummyInput()
-          .appendField("Si objeto:")
+          .appendField("Si objeto 2D:")
           .appendField(new Blockly.FieldTextInput("obj1"), "ID")
           .appendField("toca un borde");
         this.appendStatementInput("DO").setCheck(null).appendField("hacer");
@@ -327,6 +326,307 @@ export const addMovementBlocks = () => {
     const branch = dartGenerator.statementToCode(block, "DO").trim();
     return `if (touchesEdge("${id}")) {\n${branch}\n}\n`;
   };
+
+  // Bloque para crear un objeto 3D
+  if (!Blockly.Blocks["create_3d_object"]) {
+    Blockly.Blocks["create_3d_object"] = {
+      init() {
+        this.appendDummyInput()
+          .appendField("Crear objeto 3D ID:")
+          .appendField(new Blockly.FieldTextInput("cube1"), "ID")
+          .appendField("en x:")
+          .appendField(new Blockly.FieldNumber(0, 0, 5), "X") // Límite 6x6: 0-5
+          .appendField("y:")
+          .appendField(new Blockly.FieldNumber(0, 0, 5), "Y")
+          .appendField("z:")
+          .appendField(new Blockly.FieldNumber(0, 0, 5), "Z")
+          .appendField("color:")
+          .appendField(new Blockly.FieldDropdown(COLORS), "COLOR");
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour(160); // Diferente color para 3D
+      },
+    };
+  }
+
+  javascriptGenerator.forBlock["create_3d_object"] = function (block: Blockly.Block) {
+    const id = block.getFieldValue("ID");
+    const x = block.getFieldValue("X");
+    const y = block.getFieldValue("Y");
+    const z = block.getFieldValue("Z");
+    const color = block.getFieldValue("COLOR");
+    return `create3DObject("${id}", ${x}, ${y}, ${z}, "${color}");\n`;
+  };
+
+  pythonGenerator.forBlock["create_3d_object"] = function (block: Blockly.Block) {
+    const id = block.getFieldValue("ID");
+    const x = block.getFieldValue("X");
+    const y = block.getFieldValue("Y");
+    const z = block.getFieldValue("Z");
+    const color = block.getFieldValue("COLOR");
+    return `create3DObject("${id}", ${x}, ${y}, ${z}, "${color}")\n`;
+  };
+
+  phpGenerator.forBlock["create_3d_object"] = function (block: Blockly.Block) {
+    const id = block.getFieldValue("ID");
+    const x = block.getFieldValue("X");
+    const y = block.getFieldValue("Y");
+    const z = block.getFieldValue("Z");
+    const color = block.getFieldValue("COLOR");
+    return `create3DObject("${id}", ${x}, ${y}, ${z}, "${color}");\n`;
+  };
+
+  luaGenerator.forBlock["create_3d_object"] = function (block: Blockly.Block) {
+    const id = block.getFieldValue("ID");
+    const x = block.getFieldValue("X");
+    const y = block.getFieldValue("Y");
+    const z = block.getFieldValue("Z");
+    const color = block.getFieldValue("COLOR");
+    return `create3DObject("${id}", ${x}, ${y}, ${z}, "${color}")\n`;
+  };
+
+  dartGenerator.forBlock["create_3d_object"] = function (block: Blockly.Block) {
+    const id = block.getFieldValue("ID");
+    const x = block.getFieldValue("X");
+    const y = block.getFieldValue("Y");
+    const z = block.getFieldValue("Z");
+    const color = block.getFieldValue("COLOR");
+    return `create3DObject("${id}", ${x}, ${y}, ${z}, "${color}");\n`;
+  };
+
+  // Bloque para mover a la derecha (3D)
+  if (!Blockly.Blocks["move_3d_right"]) {
+    Blockly.Blocks["move_3d_right"] = {
+      init() {
+        this.appendDummyInput()
+          .appendField("Mover a la derecha 3D objeto:")
+          .appendField(new Blockly.FieldTextInput("cube1"), "ID");
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour(160);
+      },
+    };
+  }
+
+  javascriptGenerator.forBlock["move_3d_right"] = function (block: Blockly.Block) {
+    const id = block.getFieldValue("ID");
+    return `move3DRight("${id}");\n`;
+  };
+
+  pythonGenerator.forBlock["move_3d_right"] = function (block: Blockly.Block) {
+    const id = block.getFieldValue("ID");
+    return `move3DRight("${id}")\n`;
+  };
+
+  phpGenerator.forBlock["move_3d_right"] = function (block: Blockly.Block) {
+    const id = block.getFieldValue("ID");
+    return `move3DRight("${id}");\n`;
+  };
+
+  luaGenerator.forBlock["move_3d_right"] = function (block: Blockly.Block) {
+    const id = block.getFieldValue("ID");
+    return `move3DRight("${id}")\n`;
+  };
+
+  dartGenerator.forBlock["move_3d_right"] = function (block: Blockly.Block) {
+    const id = block.getFieldValue("ID");
+    return `move3DRight("${id}");\n`;
+  };
+
+  // Bloque para mover a la izquierda (3D)
+  if (!Blockly.Blocks["move_3d_left"]) {
+    Blockly.Blocks["move_3d_left"] = {
+      init() {
+        this.appendDummyInput()
+          .appendField("Mover a la izquierda 3D objeto:")
+          .appendField(new Blockly.FieldTextInput("cube1"), "ID");
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour(160);
+      },
+    };
+  }
+
+  javascriptGenerator.forBlock["move_3d_left"] = function (block: Blockly.Block) {
+    const id = block.getFieldValue("ID");
+    return `move3DLeft("${id}");\n`;
+  };
+
+  pythonGenerator.forBlock["move_3d_left"] = function (block: Blockly.Block) {
+    const id = block.getFieldValue("ID");
+    return `move3DLeft("${id}")\n`;
+  };
+
+  phpGenerator.forBlock["move_3d_left"] = function (block: Blockly.Block) {
+    const id = block.getFieldValue("ID");
+    return `move3DLeft("${id}");\n`;
+  };
+
+  luaGenerator.forBlock["move_3d_left"] = function (block: Blockly.Block) {
+    const id = block.getFieldValue("ID");
+    return `move3DLeft("${id}")\n`;
+  };
+
+  dartGenerator.forBlock["move_3d_left"] = function (block: Blockly.Block) {
+    const id = block.getFieldValue("ID");
+    return `move3DLeft("${id}");\n`;
+  };
+
+  // Bloque para mover arriba (3D)
+  if (!Blockly.Blocks["move_3d_up"]) {
+    Blockly.Blocks["move_3d_up"] = {
+      init() {
+        this.appendDummyInput()
+          .appendField("Mover arriba 3D objeto:")
+          .appendField(new Blockly.FieldTextInput("cube1"), "ID");
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour(160);
+      },
+    };
+  }
+
+  javascriptGenerator.forBlock["move_3d_up"] = function (block: Blockly.Block) {
+    const id = block.getFieldValue("ID");
+    return `move3DUp("${id}");\n`;
+  };
+
+  pythonGenerator.forBlock["move_3d_up"] = function (block: Blockly.Block) {
+    const id = block.getFieldValue("ID");
+    return `move3DUp("${id}")\n`;
+  };
+
+  phpGenerator.forBlock["move_3d_up"] = function (block: Blockly.Block) {
+    const id = block.getFieldValue("ID");
+    return `move3DUp("${id}");\n`;
+  };
+
+  luaGenerator.forBlock["move_3d_up"] = function (block: Blockly.Block) {
+    const id = block.getFieldValue("ID");
+    return `move3DUp("${id}")\n`;
+  };
+
+  dartGenerator.forBlock["move_3d_up"] = function (block: Blockly.Block) {
+    const id = block.getFieldValue("ID");
+    return `move3DUp("${id}");\n`;
+  };
+
+  // Bloque para mover abajo (3D)
+  if (!Blockly.Blocks["move_3d_down"]) {
+    Blockly.Blocks["move_3d_down"] = {
+      init() {
+        this.appendDummyInput()
+          .appendField("Mover abajo 3D objeto:")
+          .appendField(new Blockly.FieldTextInput("cube1"), "ID");
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour(160);
+      },
+    };
+  }
+
+  javascriptGenerator.forBlock["move_3d_down"] = function (block: Blockly.Block) {
+    const id = block.getFieldValue("ID");
+    return `move3DDown("${id}");\n`;
+  };
+
+  pythonGenerator.forBlock["move_3d_down"] = function (block: Blockly.Block) {
+    const id = block.getFieldValue("ID");
+    return `move3DDown("${id}")\n`;
+  };
+
+  phpGenerator.forBlock["move_3d_down"] = function (block: Blockly.Block) {
+    const id = block.getFieldValue("ID");
+    return `move3DDown("${id}");\n`;
+  };
+
+  luaGenerator.forBlock["move_3d_down"] = function (block: Blockly.Block) {
+    const id = block.getFieldValue("ID");
+    return `move3DDown("${id}")\n`;
+  };
+
+  dartGenerator.forBlock["move_3d_down"] = function (block: Blockly.Block) {
+    const id = block.getFieldValue("ID");
+    return `move3DDown("${id}");\n`;
+  };
+
+  // Bloque para mover adelante (3D)
+  if (!Blockly.Blocks["move_3d_forward"]) {
+    Blockly.Blocks["move_3d_forward"] = {
+      init() {
+        this.appendDummyInput()
+          .appendField("Mover adelante 3D objeto:")
+          .appendField(new Blockly.FieldTextInput("cube1"), "ID");
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour(160);
+      },
+    };
+  }
+
+  javascriptGenerator.forBlock["move_3d_forward"] = function (block: Blockly.Block) {
+    const id = block.getFieldValue("ID");
+    return `move3DForward("${id}");\n`;
+  };
+
+  pythonGenerator.forBlock["move_3d_forward"] = function (block: Blockly.Block) {
+    const id = block.getFieldValue("ID");
+    return `move3DForward("${id}")\n`;
+  };
+
+  phpGenerator.forBlock["move_3d_forward"] = function (block: Blockly.Block) {
+    const id = block.getFieldValue("ID");
+    return `move3DForward("${id}");\n`;
+  };
+
+  luaGenerator.forBlock["move_3d_forward"] = function (block: Blockly.Block) {
+    const id = block.getFieldValue("ID");
+    return `move3DForward("${id}")\n`;
+  };
+
+  dartGenerator.forBlock["move_3d_forward"] = function (block: Blockly.Block) {
+    const id = block.getFieldValue("ID");
+    return `move3DForward("${id}");\n`;
+  };
+
+  // Bloque para mover atrás (3D)
+  if (!Blockly.Blocks["move_3d_backward"]) {
+    Blockly.Blocks["move_3d_backward"] = {
+      init() {
+        this.appendDummyInput()
+          .appendField("Mover atrás 3D objeto:")
+          .appendField(new Blockly.FieldTextInput("cube1"), "ID");
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour(160);
+      },
+    };
+  }
+
+  javascriptGenerator.forBlock["move_3d_backward"] = function (block: Blockly.Block) {
+    const id = block.getFieldValue("ID");
+    return `move3DBackward("${id}");\n`;
+  };
+
+  pythonGenerator.forBlock["move_3d_backward"] = function (block: Blockly.Block) {
+    const id = block.getFieldValue("ID");
+    return `move3DBackward("${id}")\n`;
+  };
+
+  phpGenerator.forBlock["move_3d_backward"] = function (block: Blockly.Block) {
+    const id = block.getFieldValue("ID");
+    return `move3DBackward("${id}");\n`;
+  };
+
+  luaGenerator.forBlock["move_3d_backward"] = function (block: Blockly.Block) {
+    const id = block.getFieldValue("ID");
+    return `move3DBackward("${id}")\n`;
+  };
+
+  dartGenerator.forBlock["move_3d_backward"] = function (block: Blockly.Block) {
+    const id = block.getFieldValue("ID");
+    return `move3DBackward("${id}");\n`;
+  };
 };
 
 export const movementToolbox = `
@@ -338,5 +638,12 @@ export const movementToolbox = `
     <block type="move_down"></block>
     <block type="if_collides"></block>
     <block type="if_touches_edge"></block>
+    <block type="create_3d_object"></block>
+    <block type="move_3d_right"></block>
+    <block type="move_3d_left"></block>
+    <block type="move_3d_up"></block>
+    <block type="move_3d_down"></block>
+    <block type="move_3d_forward"></block>
+    <block type="move_3d_backward"></block>
   </xml>
 `;
