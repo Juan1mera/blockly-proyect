@@ -8,6 +8,7 @@ import { colors } from "./constants/colors";
 import ConsoleBlockView from "./components/ConsoleBlockView";
 import XmlDataBlockView from "./components/XmlDataBlockView";
 import LenguajeSelect from "./views/blocks/components/LenguajeSelect";
+import Object2DView from "./components/Object2DView";
 
 interface ObjectState {
   x: number;
@@ -47,10 +48,16 @@ function App() {
     const moveRight = (id: string) => {
       delayQueue = delayQueue.then(() =>
         new Promise((resolve) => {
-          setObjects((prev) => ({
-            ...prev,
-            [id]: { ...prev[id], x: Math.min(prev[id].x + 1, 14) },
-          }));
+          setObjects((prev) => {
+            if (!prev[id]) {
+              console.log(`Error: Objeto "${id}" no existe.`);
+              return prev; // No hacemos nada si el objeto no existe
+            }
+            return {
+              ...prev,
+              [id]: { ...prev[id], x: Math.min(prev[id].x + 1, 14) },
+            };
+          });
           setTimeout(resolve, 500);
         })
       );
@@ -59,10 +66,16 @@ function App() {
     const moveLeft = (id: string) => {
       delayQueue = delayQueue.then(() =>
         new Promise((resolve) => {
-          setObjects((prev) => ({
-            ...prev,
-            [id]: { ...prev[id], x: Math.max(prev[id].x - 1, 0) },
-          }));
+          setObjects((prev) => {
+            if (!prev[id]) {
+              console.log(`Error: Objeto "${id}" no existe.`);
+              return prev;
+            }
+            return {
+              ...prev,
+              [id]: { ...prev[id], x: Math.max(prev[id].x - 1, 0) },
+            };
+          });
           setTimeout(resolve, 500);
         })
       );
@@ -71,10 +84,16 @@ function App() {
     const moveUp = (id: string) => {
       delayQueue = delayQueue.then(() =>
         new Promise((resolve) => {
-          setObjects((prev) => ({
-            ...prev,
-            [id]: { ...prev[id], y: Math.max(prev[id].y - 1, 0) },
-          }));
+          setObjects((prev) => {
+            if (!prev[id]) {
+              console.log(`Error: Objeto "${id}" no existe.`);
+              return prev;
+            }
+            return {
+              ...prev,
+              [id]: { ...prev[id], y: Math.max(prev[id].y - 1, 0) },
+            };
+          });
           setTimeout(resolve, 500);
         })
       );
@@ -83,10 +102,16 @@ function App() {
     const moveDown = (id: string) => {
       delayQueue = delayQueue.then(() =>
         new Promise((resolve) => {
-          setObjects((prev) => ({
-            ...prev,
-            [id]: { ...prev[id], y: Math.min(prev[id].y + 1, 14) },
-          }));
+          setObjects((prev) => {
+            if (!prev[id]) {
+              console.log(`Error: Objeto "${id}" no existe.`);
+              return prev;
+            }
+            return {
+              ...prev,
+              [id]: { ...prev[id], y: Math.min(prev[id].y + 1, 14) },
+            };
+          });
           setTimeout(resolve, 500);
         })
       );
@@ -196,33 +221,7 @@ function App() {
       <CustomButton onClick={runCode} text="Ejecutar Código" />
 
       <ConsoleBlockView consoleOutput={consoleOutput} />
-
-      <div
-        style={{
-          marginTop: "20px",
-          width: "300px",
-          height: "300px",
-          border: "1px solid #ccc",
-          position: "relative",
-          background: "#f0f0f0",
-        }}
-      >
-        {Object.entries(objects).map(([id, { x, y, color }]) => (
-          <div
-            key={id}
-            style={{
-              width: "20px",
-              height: "20px",
-              background: color,
-              position: "absolute",
-              left: `${x * 20}px`,
-              top: `${y * 20}px`,
-              transition: "all 0.3s ease",
-            }}
-          />
-        ))}
-      </div>
-
+      <Object2DView objects={objects} />
       <XmlDataBlockView sections={sections} currentSection={currentSection} />
       <GraphicsView />
     </div>
