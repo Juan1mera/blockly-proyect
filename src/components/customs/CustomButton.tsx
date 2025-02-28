@@ -8,10 +8,9 @@ interface CustomButtonProps {
     style?: React.CSSProperties;
 }
 
-function CustomButton({ onClick, text, bgColor = colors.morado, key, style }: CustomButtonProps) {
+function CustomButton({ onClick, text, bgColor = colors.morado, style }: CustomButtonProps) {
   return (
     <button 
-        key={key}
         onClick={onClick} 
         style={{
             background: bgColor,
