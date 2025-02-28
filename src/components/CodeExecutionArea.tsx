@@ -1,6 +1,6 @@
-import LenguajeSelect from "../views/blocks/components/LenguajeSelect";
+// import LenguajeSelect from "../views/blocks/components/LenguajeSelect";
 import BlocklyWorkspace from "./BlocklyWorkspace";
-import CodeDisplay from "./CodeDisplay";
+// import CodeDisplay from "./CodeDisplay";
 import CustomButton from "./customs/CustomButton";
 
 interface CodeExecutionAreaProps {
@@ -13,10 +13,10 @@ interface CodeExecutionAreaProps {
 }
 
 const CodeExecutionArea: React.FC<CodeExecutionAreaProps> = ({
-  code,
+  // code,
   setCode,
   language,
-  setLanguage,
+  // setLanguage,
   loadBlocks,
   onRunCode,
 }) => {
