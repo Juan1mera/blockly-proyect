@@ -23,7 +23,7 @@ function App() {
   } = useBlocklyLogic();
 
   // const { objects2D, objects3D, runCode } = useCombinedObjectState(setConsoleOutput);
-  const {objects3D, runCode} = useCombinedObjectState(setConsoleOutput)
+  const { objects3D, runCode } = useCombinedObjectState(setConsoleOutput);
 
   const handleRunCode = () => runCode(code, language);
 
@@ -35,20 +35,40 @@ function App() {
         onSectionChange={handleSectionChange}
         onSaveSection={saveSection}
       />
-      <CodeExecutionArea
-        code={code}
-        setCode={setCode}
-        language={language}
-        setLanguage={setLanguage}
-        loadBlocks={sections[currentSection]}
-        onRunCode={handleRunCode}
-      />
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "row",
+          height: "auto",
+          overflow: "hidden", 
+        }}
+      >
+        <div style={{ flex: 1 }}>
+          <CodeExecutionArea
+            code={code}
+            setCode={setCode}
+            language={language}
+            setLanguage={setLanguage}
+            loadBlocks={sections[currentSection]}
+            onRunCode={handleRunCode}
+          />
+        </div>
+        <div
+          style={{
+            width: "400px", // Ancho fijo para ThreeScene
+            height: "400px", // Altura fija para ThreeScene
+            overflow: "hidden", // Evita que ThreeScene se extienda más allá
+          }}
+        >
+          <ThreeScene objects={objects3D} />
+        </div>
+      </div>
+
       <ConsoleBlockView consoleOutput={consoleOutput} />
       {/* <Object2DView objects={objects2D} /> */}
-      <ThreeScene objects={objects3D} />
       {/* <XmlDataBlockView sections={sections} currentSection={currentSection} /> */}
       {/* <GraphicsView /> */}
-      <div style={{width: "100%", height: "100px"}}></div>
+      <div style={{ width: "100%", height: "100px" }}></div>
     </div>
   );
 }
