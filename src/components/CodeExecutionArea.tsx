@@ -23,10 +23,10 @@ const CodeExecutionArea: React.FC<CodeExecutionAreaProps> = ({
   return (
     <div style={{ display: "flex", gap: "20px", width: "100%" }}>
       <BlocklyWorkspace setCode={setCode} language={language} loadBlocks={loadBlocks} />
-      <div style={{ width: "50%" }}>
+      {/* <div style={{ width: "50%" }}>
         <LenguajeSelect language={language} onChange={setLanguage} />
         <CodeDisplay code={code} language={language} />
-      </div>
+      </div> */}
       <CustomButton onClick={onRunCode} text="Ejecutar Código" />
     </div>
   );
