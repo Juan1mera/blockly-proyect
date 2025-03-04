@@ -19,7 +19,7 @@ function App() {
         <Routes>
           <Route path="/" element={<Navigate to="/user" replace />} />
           <Route path="/user" element={<User />} />
-          <Route path="/admin" element={<Admin />} />
+          <Route path="/admin/:levelId" element={<Admin />} /> {/* Ruta dinámica para niveles */}
         </Routes>
       </div>
     </Router>
