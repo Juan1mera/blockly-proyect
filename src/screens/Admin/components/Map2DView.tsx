@@ -191,7 +191,7 @@ const Map2DView: React.FC<Map2DViewProps> = ({ initialGrid, onGridChange }) => {
   return (
     <div>
       {/* Controles para editar tamaño de la cuadrícula */}
-      <div style={{ marginBottom: "10px", background: "#f0f0f0", padding: "10px", borderRadius: "5px" }}>
+      <div style={{ marginBottom: "10px", padding: "10px", borderRadius: "5px" }}>
         <label>
           Filas (1-10): 
           <input
@@ -217,14 +217,14 @@ const Map2DView: React.FC<Map2DViewProps> = ({ initialGrid, onGridChange }) => {
       </div>
 
       {/* Sección descriptiva */}
-      <div style={{ marginBottom: "10px", background: "#f0f0f0", padding: "10px", borderRadius: "5px" }}>
+      <div style={{ marginBottom: "10px", padding: "10px", borderRadius: "5px" }}>
         <p><strong>Dimensiones de la Cuadrícula:</strong> {rows} filas x {cols} columnas</p>
         <p><strong>Colores y Significados:</strong></p>
         <ul style={{ listStyle: "none", padding: 0 }}>
-          <li style={{ color: "white", background: "#000", padding: "2px 5px", borderRadius: "3px" }}>Blanco (0): Vacío</li>
-          <li style={{ color: "green", background: "#000", padding: "2px 5px", borderRadius: "3px" }}>Verde (1): Terreno</li>
-          <li style={{ color: "blue", background: "#000", padding: "2px 5px", borderRadius: "3px" }}>Azul (2): Jugador</li>
-          <li style={{ color: "red", background: "#000", padding: "2px 5px", borderRadius: "3px" }}>Rojo (3): Meta</li>
+          <li style={{ color: "white",  padding: "2px 5px", borderRadius: "3px" }}>Blanco (0): Vacío</li>
+          <li style={{ color: "green",  padding: "2px 5px", borderRadius: "3px" }}>Verde (1): Terreno</li>
+          <li style={{ color: "blue",  padding: "2px 5px", borderRadius: "3px" }}>Azul (2): Jugador</li>
+          <li style={{ color: "red",  padding: "2px 5px", borderRadius: "3px" }}>Rojo (3): Meta</li>
         </ul>
       </div>
 
