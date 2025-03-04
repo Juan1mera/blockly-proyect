@@ -12,10 +12,14 @@ interface Map2DViewProps {
 }
 
 const Map2DView: React.FC<Map2DViewProps> = ({ initialGrid, onGridChange }) => {
+  const [rows, setRows] = useState<number>(4); // Número de filas, editable
+  const [cols, setCols] = useState<number>(8); // Número de columnas, editable
   const [grid, setGrid] = useState<Cell[][]>(() => {
     if (initialGrid) {
-      const rows = initialGrid.trim().split("\n");
-      return rows.map((row, y) =>
+      const rowsData = initialGrid.trim().split("\n");
+      const rowLength = rowsData[0].trim().split(" ").length;
+      const colLength = rowsData.length;
+      return rowsData.map((row, y) =>
         row.trim().split(" ").map((state, x) => ({
           x,
           y,
@@ -23,7 +27,7 @@ const Map2DView: React.FC<Map2DViewProps> = ({ initialGrid, onGridChange }) => {
         }))
       );
     }
-    return Array(4).fill(Array(8).fill({ x: 0, y: 0, state: 0 }));
+    return Array(rows).fill(Array(cols).fill({ x: 0, y: 0, state: 0 }));
   });
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -40,18 +44,18 @@ const Map2DView: React.FC<Map2DViewProps> = ({ initialGrid, onGridChange }) => {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    const cellWidth = canvas.width / 8; // 8 columnas
-    const cellHeight = canvas.height / 4; // 4 filas
+    const cellWidth = canvas.width / cols; // Ajustar según columnas
+    const cellHeight = canvas.height / rows; // Ajustar según filas
 
     const drawGrid = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      for (let y = 0; y < 4; y++) {
-        for (let x = 0; x < 8; x++) {
+      for (let y = 0; y < rows; y++) {
+        for (let x = 0; x < cols; x++) {
           ctx.strokeStyle = "black";
           ctx.strokeRect(x * cellWidth, y * cellHeight, cellWidth, cellHeight);
 
-          const cell = grid[y][x];
+          const cell = grid[y]?.[x] || { state: 0 }; // Asegurar acceso seguro
           switch (cell.state) {
             case 0: // Vacío
               ctx.fillStyle = "white";
@@ -78,19 +82,19 @@ const Map2DView: React.FC<Map2DViewProps> = ({ initialGrid, onGridChange }) => {
       const x = Math.floor((event.clientX - rect.left) / cellWidth);
       const y = Math.floor((event.clientY - rect.top) / cellHeight);
 
-      if (x >= 0 && x < 8 && y >= 0 && y < 4) {
+      if (x >= 0 && x < cols && y >= 0 && y < rows) {
         if (event.button === 0) { // Clic izquierdo: ciclo de estados
           setGrid((prev) => {
-            const newGrid = prev.map((row) => [...row]);
-            const currentState = newGrid[y][x].state;
+            const newGrid = prev.map((row, i) => (i === y ? [...row] : row));
+            const currentState = newGrid[y]?.[x]?.state || 0;
 
             // Contar jugador y meta actuales
             let playerCount = 0;
             let goalCount = 0;
-            for (let i = 0; i < 4; i++) {
-              for (let j = 0; j < 8; j++) {
-                if (newGrid[i][j].state === 2) playerCount++;
-                if (newGrid[i][j].state === 3) goalCount++;
+            for (let i = 0; i < rows; i++) {
+              for (let j = 0; j < cols; j++) {
+                if (newGrid[i]?.[j]?.state === 2) playerCount++;
+                if (newGrid[i]?.[j]?.state === 3) goalCount++;
               }
             }
 
@@ -119,7 +123,7 @@ const Map2DView: React.FC<Map2DViewProps> = ({ initialGrid, onGridChange }) => {
           });
         } else if (event.button === 2) { // Clic derecho: volver a 0 (vacío)
           setGrid((prev) => {
-            const newGrid = prev.map((row) => [...row]);
+            const newGrid = prev.map((row, i) => (i === y ? [...row] : row));
             newGrid[y][x] = { x, y, state: 0 }; // Vuelve a vacío
             return newGrid;
           });
@@ -128,19 +132,20 @@ const Map2DView: React.FC<Map2DViewProps> = ({ initialGrid, onGridChange }) => {
     };
 
     canvas.addEventListener("click", handleCanvasClick);
-    canvas.addEventListener("contextmenu", handleCanvasClick); 
+    canvas.addEventListener("contextmenu", handleCanvasClick);
     drawGrid();
 
     return () => {
       canvas.removeEventListener("click", handleCanvasClick);
       canvas.removeEventListener("contextmenu", handleCanvasClick);
     };
-  }, [grid]);
+  }, [grid, rows, cols]);
 
   const getGridData = () => {
     return grid
+      .slice(0, rows) // Limitar a las filas actuales
       .map((row) =>
-        row.map((cell) => cell.state).join(" ")
+        row.slice(0, cols).map((cell) => cell.state).join(" ") // Limitar a las columnas actuales
       )
       .join("\n");
   };
@@ -150,12 +155,79 @@ const Map2DView: React.FC<Map2DViewProps> = ({ initialGrid, onGridChange }) => {
     if (canvasRef.current) {
       const containerWidth = canvasRef.current.parentElement?.clientWidth || 800;
       canvasRef.current.width = containerWidth;
-      canvasRef.current.height = (containerWidth / 8) * 4; // Mantener proporción 8x4
+      canvasRef.current.height = (containerWidth / cols) * rows; // Ajustar altura según filas y columnas
     }
-  }, []);
+  }, [rows, cols]);
+
+  // Manejar cambios en filas y columnas
+  const handleRowsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newRows = Math.max(1, Math.min(10, parseInt(e.target.value) || 4)); // Limite entre 1 y 10
+    setRows(newRows);
+    setGrid((prev) => {
+      const newGrid = Array(newRows).fill(Array(cols).fill({ x: 0, y: 0, state: 0 }));
+      for (let y = 0; y < Math.min(newRows, prev.length); y++) {
+        for (let x = 0; x < Math.min(cols, prev[y].length); x++) {
+          newGrid[y][x] = prev[y][x];
+        }
+      }
+      return newGrid;
+    });
+  };
+
+  const handleColsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newCols = Math.max(1, Math.min(20, parseInt(e.target.value) || 8)); // Limite entre 1 y 20
+    setCols(newCols);
+    setGrid((prev) => {
+      const newGrid = Array(rows).fill(Array(newCols).fill({ x: 0, y: 0, state: 0 }));
+      for (let y = 0; y < rows; y++) {
+        for (let x = 0; x < Math.min(newCols, prev[y].length); x++) {
+          newGrid[y][x] = prev[y][x];
+        }
+      }
+      return newGrid;
+    });
+  };
 
   return (
     <div>
+      {/* Controles para editar tamaño de la cuadrícula */}
+      <div style={{ marginBottom: "10px", background: "#f0f0f0", padding: "10px", borderRadius: "5px" }}>
+        <label>
+          Filas (1-10): 
+          <input
+            type="number"
+            value={rows}
+            onChange={handleRowsChange}
+            min="1"
+            max="10"
+            style={{ marginLeft: "5px", width: "60px" }}
+          />
+        </label>
+        <label style={{ marginLeft: "20px" }}>
+          Columnas (1-20): 
+          <input
+            type="number"
+            value={cols}
+            onChange={handleColsChange}
+            min="1"
+            max="20"
+            style={{ marginLeft: "5px", width: "60px" }}
+          />
+        </label>
+      </div>
+
+      {/* Sección descriptiva */}
+      <div style={{ marginBottom: "10px", background: "#f0f0f0", padding: "10px", borderRadius: "5px" }}>
+        <p><strong>Dimensiones de la Cuadrícula:</strong> {rows} filas x {cols} columnas</p>
+        <p><strong>Colores y Significados:</strong></p>
+        <ul style={{ listStyle: "none", padding: 0 }}>
+          <li style={{ color: "white", background: "#000", padding: "2px 5px", borderRadius: "3px" }}>Blanco (0): Vacío</li>
+          <li style={{ color: "green", background: "#000", padding: "2px 5px", borderRadius: "3px" }}>Verde (1): Terreno</li>
+          <li style={{ color: "blue", background: "#000", padding: "2px 5px", borderRadius: "3px" }}>Azul (2): Jugador</li>
+          <li style={{ color: "red", background: "#000", padding: "2px 5px", borderRadius: "3px" }}>Rojo (3): Meta</li>
+        </ul>
+      </div>
+
       <canvas
         ref={canvasRef}
         style={{ border: "1px solid black", cursor: "pointer" }}

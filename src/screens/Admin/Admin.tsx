@@ -16,7 +16,9 @@ function Admin() {
   return (
     <div>
       <BlocklyWorkspace setCode={(code) => console.log(code)} language="javascript" />
+      <div style={{height: "20px"}} />
       <CustomButton text="Guardar" onClick={() => console.log("Guardar")} />
+      <div style={{height: "20px"}} />
       <Map2DView
         initialGrid={gridData}
         onGridChange={(newGridData) => setGridData(newGridData)}
@@ -27,6 +29,8 @@ function Admin() {
         <pre>{gridData}</pre>
       </div>
       <Map3DView gridData={gridData} gridView/> 
+      <div style={{height: "200px"}} />
+
     </div>
   );
 }
