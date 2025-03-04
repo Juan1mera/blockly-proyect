@@ -7,13 +7,14 @@ import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 interface Map3DViewProps {
   gridData: string;
   containerRef?: React.RefObject<HTMLDivElement>;
+  gridView?: boolean; // Prop opcional para mostrar/ocultar la cuadrícula, false por defecto
 }
 
 interface ModelObject extends THREE.Object3D {
   scale: THREE.Vector3;
 }
 
-const Map3DView: React.FC<Map3DViewProps> = ({ gridData, containerRef }) => {
+const Map3DView: React.FC<Map3DViewProps> = ({ gridData, containerRef, gridView = false }) => {
   const mountRef = useRef<HTMLDivElement>(null);
   const sceneRef = useRef<THREE.Scene | null>(null);
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
@@ -29,7 +30,7 @@ const Map3DView: React.FC<Map3DViewProps> = ({ gridData, containerRef }) => {
     // Obtener dimensiones del contenedor
     const width = container.clientWidth || 400;
     const height = container.clientHeight || 400;
-    
+
     // Configurar escena
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
@@ -48,8 +49,8 @@ const Map3DView: React.FC<Map3DViewProps> = ({ gridData, containerRef }) => {
       camera.updateProjectionMatrix();
       renderer.setSize(newWidth, newHeight);
     };
-    
-    window.addEventListener('resize', handleResize);
+
+    window.addEventListener("resize", handleResize);
 
     sceneRef.current = scene;
     cameraRef.current = camera;
@@ -78,11 +79,9 @@ const Map3DView: React.FC<Map3DViewProps> = ({ gridData, containerRef }) => {
     controlsRef.current = controls;
 
     // Añadir luces
-    // Luz ambiental para iluminación general
     const ambientLight = new THREE.AmbientLight(0x404040, 1.5);
     scene.add(ambientLight);
 
-    // Luz direccional principal (como el sol)
     const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
     directionalLight.position.set(centerX, gridHeight * 2, centerZ);
     directionalLight.castShadow = true;
@@ -95,24 +94,6 @@ const Map3DView: React.FC<Map3DViewProps> = ({ gridData, containerRef }) => {
     directionalLight.shadow.camera.top = gridHeight;
     directionalLight.shadow.camera.bottom = -gridHeight;
     scene.add(directionalLight);
-
-    // Añadir un plano para representar el suelo
-    const groundGeometry = new THREE.PlaneGeometry(gridWidth * 1.5, gridHeight * 1.5);
-    const groundMaterial = new THREE.MeshStandardMaterial({ 
-      color: 0x228B22, 
-      side: THREE.DoubleSide,
-      roughness: 0.8
-    });
-    const ground = new THREE.Mesh(groundGeometry, groundMaterial);
-    ground.rotation.x = Math.PI / 2;
-    ground.position.set(centerX, -0.1, centerZ);
-    ground.receiveShadow = true;
-    scene.add(ground);
-
-    // Crear cuadrícula para visualizar el mapa
-    const gridHelper = new THREE.GridHelper(Math.max(gridWidth, gridHeight), Math.max(gridWidth, gridHeight));
-    gridHelper.position.set(centerX, 0, centerZ);
-    scene.add(gridHelper);
 
     // Loaders para modelos .obj
     const mtlLoader = new MTLLoader();
@@ -130,7 +111,7 @@ const Map3DView: React.FC<Map3DViewProps> = ({ gridData, containerRef }) => {
     const models: Record<string, THREE.Object3D | null> = {
       block: null,
       player: null,
-      finish: null
+      finish: null,
     };
 
     // Función para renderizar la cuadrícula después de cargar todos los modelos
@@ -142,12 +123,12 @@ const Map3DView: React.FC<Map3DViewProps> = ({ gridData, containerRef }) => {
 
     // Cargar modelo de bloque (terreno)
     mtlLoader.load(
-      blockMtlPath, 
+      blockMtlPath,
       (materials) => {
         materials.preload();
         objLoader.setMaterials(materials);
         objLoader.load(
-          blockObjPath, 
+          blockObjPath,
           (blockObject: ModelObject) => {
             blockObject.scale.set(0.5, 0.5, 0.5);
             blockObject.traverse((child) => {
@@ -160,21 +141,21 @@ const Map3DView: React.FC<Map3DViewProps> = ({ gridData, containerRef }) => {
             checkAndRenderGrid();
           },
           undefined,
-          (error) => console.error('Error cargando bloque:', error)
+          (error) => console.error("Error cargando bloque:", error)
         );
       },
       undefined,
-      (error) => console.error('Error cargando materiales de bloque:', error)
+      (error) => console.error("Error cargando materiales de bloque:", error)
     );
 
     // Cargar modelo de jugador (palmera)
     mtlLoader.load(
-      playerMtlPath, 
+      playerMtlPath,
       (materials) => {
         materials.preload();
         objLoader.setMaterials(materials);
         objLoader.load(
-          playerObjPath, 
+          playerObjPath,
           (playerObject: ModelObject) => {
             playerObject.scale.set(0.5, 0.5, 0.5);
             playerObject.traverse((child) => {
@@ -187,21 +168,21 @@ const Map3DView: React.FC<Map3DViewProps> = ({ gridData, containerRef }) => {
             checkAndRenderGrid();
           },
           undefined,
-          (error) => console.error('Error cargando jugador:', error)
+          (error) => console.error("Error cargando jugador:", error)
         );
       },
       undefined,
-      (error) => console.error('Error cargando materiales de jugador:', error)
+      (error) => console.error("Error cargando materiales de jugador:", error)
     );
 
     // Cargar modelo de meta (arbusto)
     mtlLoader.load(
-      finishMtlPath, 
+      finishMtlPath,
       (materials) => {
         materials.preload();
         objLoader.setMaterials(materials);
         objLoader.load(
-          finishObjPath, 
+          finishObjPath,
           (finishObject: ModelObject) => {
             finishObject.scale.set(0.5, 0.5, 0.5);
             finishObject.traverse((child) => {
@@ -214,11 +195,11 @@ const Map3DView: React.FC<Map3DViewProps> = ({ gridData, containerRef }) => {
             checkAndRenderGrid();
           },
           undefined,
-          (error) => console.error('Error cargando meta:', error)
+          (error) => console.error("Error cargando meta:", error)
         );
       },
       undefined,
-      (error) => console.error('Error cargando materiales de meta:', error)
+      (error) => console.error("Error cargando materiales de meta:", error)
     );
 
     const renderGrid = (
@@ -236,7 +217,7 @@ const Map3DView: React.FC<Map3DViewProps> = ({ gridData, containerRef }) => {
       for (let z = 0; z < gridHeight; z++) {
         for (let x = 0; x < gridWidth; x++) {
           const state = grid[z][x];
-          
+
           if (state === 1) {
             // Terreno (cubo)
             const block = blockModel.clone();
@@ -245,19 +226,16 @@ const Map3DView: React.FC<Map3DViewProps> = ({ gridData, containerRef }) => {
             objectRefs.current[`block_${x}_${z}`] = block;
           } else if (state === 2) {
             // Jugador (palmera) - Añadir un cubo debajo si no hay terreno
-            if (x > 0 && z > 0 && x < gridWidth && z < gridHeight) {
-              // Verificar si hay terreno en esta posición
-              const needsBase = grid[z][x] !== 1;
-              
-              if (needsBase) {
-                // Crear un cubo como base
-                const baseBlock = blockModel.clone();
-                baseBlock.position.set(x, 0, z);
-                sceneRef.current.add(baseBlock);
-                objectRefs.current[`block_base_${x}_${z}`] = baseBlock;
-              }
+            const needsBase = grid[z][x] !== 1;
+
+            if (needsBase) {
+              // Crear un cubo como base
+              const baseBlock = blockModel.clone();
+              baseBlock.position.set(x, 0, z);
+              sceneRef.current.add(baseBlock);
+              objectRefs.current[`block_base_${x}_${z}`] = baseBlock;
             }
-            
+
             // Añadir la palmera
             const player = playerModel.clone();
             player.position.set(x, 0.5, z);
@@ -265,19 +243,16 @@ const Map3DView: React.FC<Map3DViewProps> = ({ gridData, containerRef }) => {
             objectRefs.current[`player_${x}_${z}`] = player;
           } else if (state === 3) {
             // Meta (arbusto) - Añadir un cubo debajo si no hay terreno
-            if (x > 0 && z > 0 && x < gridWidth && z < gridHeight) {
-              // Verificar si hay terreno en esta posición
-              const needsBase = grid[z][x] !== 1;
-              
-              if (needsBase) {
-                // Crear un cubo como base
-                const baseBlock = blockModel.clone();
-                baseBlock.position.set(x, 0, z);
-                sceneRef.current.add(baseBlock);
-                objectRefs.current[`block_base_${x}_${z}`] = baseBlock;
-              }
+            const needsBase = grid[z][x] !== 1;
+
+            if (needsBase) {
+              // Crear un cubo como base
+              const baseBlock = blockModel.clone();
+              baseBlock.position.set(x, 0, z);
+              sceneRef.current.add(baseBlock);
+              objectRefs.current[`block_base_${x}_${z}`] = baseBlock;
             }
-            
+
             // Añadir el arbusto
             const finish = finishModel.clone();
             finish.position.set(x, 0.5, z);
@@ -285,6 +260,14 @@ const Map3DView: React.FC<Map3DViewProps> = ({ gridData, containerRef }) => {
             objectRefs.current[`finish_${x}_${z}`] = finish;
           }
         }
+      }
+
+      // Añadir cuadrícula si gridView es true
+      if (gridView) {
+        const gridHelper = new THREE.GridHelper(Math.max(gridWidth, gridHeight), Math.max(gridWidth, gridHeight));
+        gridHelper.position.set(centerX, 0, centerZ);
+        sceneRef.current.add(gridHelper);
+        objectRefs.current["gridHelper"] = gridHelper;
       }
 
       // Ajustar cámara y controles después de renderizar
@@ -300,7 +283,7 @@ const Map3DView: React.FC<Map3DViewProps> = ({ gridData, containerRef }) => {
     animate();
 
     return () => {
-      window.removeEventListener('resize', handleResize);
+      window.removeEventListener("resize", handleResize);
       if (container && rendererRef.current?.domElement) {
         container.removeChild(rendererRef.current.domElement);
       }
@@ -308,7 +291,7 @@ const Map3DView: React.FC<Map3DViewProps> = ({ gridData, containerRef }) => {
       sceneRef.current?.clear();
       rendererRef.current?.dispose();
     };
-  }, [gridData, containerRef]);
+  }, [gridData, containerRef, gridView]);
 
   return <div ref={mountRef} style={{ width: "100%", height: "100%", minHeight: "400px", border: "1px solid black" }} />;
 };

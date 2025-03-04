@@ -26,7 +26,7 @@ function Admin() {
         <h3>Datos de la Cuadrícula</h3>
         <pre>{gridData}</pre>
       </div>
-      <Map3DView gridData={gridData} /> 
+      <Map3DView gridData={gridData} gridView/> 
     </div>
   );
 }
