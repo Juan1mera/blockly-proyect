@@ -10,10 +10,12 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@types/react-router-dom": "^5.3.3",
     "blockly": "^11.2.1",
     "cls": "^0.1.5",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "react-router-dom": "^7.2.0",
     "react-syntax-highlighter": "^15.6.1",
     "three": "^0.173.0"
   },
