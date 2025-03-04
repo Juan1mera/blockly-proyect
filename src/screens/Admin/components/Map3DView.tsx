@@ -100,12 +100,12 @@ const Map3DView: React.FC<Map3DViewProps> = ({ gridData, containerRef, gridView 
     const objLoader = new OBJLoader();
 
     // Rutas a los modelos .obj
-    const blockMtlPath = "/assets/3D/mtl/Cubo.mtl";
-    const blockObjPath = "/assets/3D/obj/Cubo.obj";
-    const playerMtlPath = "/assets/3D/mtl/arbol.mtl";
-    const playerObjPath = "/assets/3D/obj/arbol.obj";
-    const finishMtlPath = "/assets/3D/mtl/arbusto.mtl";
-    const finishObjPath = "/assets/3D/obj/arbusto.obj";
+    const blockMtlPath = "/assets/3D/mtl/losa.mtl";
+    const blockObjPath = "/assets/3D/obj/losa.obj";
+    const playerMtlPath = "/assets/3D/mtl/capsula pj.mtl";
+    const playerObjPath = "/assets/3D/obj/capsula pj.obj";
+    const finishMtlPath = "/assets/3D/mtl/rocas.mtl";
+    const finishObjPath = "/assets/3D/obj/rocas.obj";
 
     // Objeto para almacenar los modelos cargados
     const models: Record<string, THREE.Object3D | null> = {
