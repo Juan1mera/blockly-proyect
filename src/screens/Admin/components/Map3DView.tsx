@@ -9,13 +9,14 @@ interface Map3DViewProps {
   containerRef?: React.RefObject<HTMLDivElement>;
   gridView?: boolean;
   onMovePlayer?: (moveFn: (direction: string) => boolean) => void;
+  onFinish?: () => void; // Añadido para notificar llegada al finish
 }
 
 interface ModelObject extends THREE.Object3D {
   scale: THREE.Vector3;
 }
 
-const Map3DView: React.FC<Map3DViewProps> = ({ gridData, containerRef, gridView = false, onMovePlayer }) => {
+const Map3DView: React.FC<Map3DViewProps> = ({ gridData, containerRef, gridView = false, onMovePlayer, onFinish }) => {
   const mountRef = useRef<HTMLDivElement>(null);
   const sceneRef = useRef<THREE.Scene | null>(null);
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
@@ -305,7 +306,7 @@ const Map3DView: React.FC<Map3DViewProps> = ({ gridData, containerRef, gridView 
       ) {
         console.log("Movimiento inválido, iniciando animación hacia fuera:", { newX, newZ });
         animationState.current = { targetX: newX, targetZ: newZ, progress: 0, moving: true };
-        return true; // Permitir la animación aunque sea inválida
+        return true;
       }
 
       animationState.current = { targetX: newX, targetZ: newZ, progress: 0, moving: true };
@@ -319,24 +320,24 @@ const Map3DView: React.FC<Map3DViewProps> = ({ gridData, containerRef, gridView 
 
     const animate = () => {
       requestAnimationFrame(animate);
-    
+
       if (playerPosition.current && animationState.current.moving) {
         const { targetX, targetZ, progress } = animationState.current;
         const player = objectRefs.current[`player_${playerPosition.current.x}_${playerPosition.current.z}`];
         if (player) {
-          const speed = 0.05; // Velocidad de la animación (ajustable)
+          const speed = 0.05;
           animationState.current.progress = Math.min(progress + speed, 1);
-    
+
           const currentX = THREE.MathUtils.lerp(playerPosition.current.x, targetX, animationState.current.progress);
           const currentZ = THREE.MathUtils.lerp(playerPosition.current.z, targetZ, animationState.current.progress);
           player.position.set(currentX, 0.5, currentZ);
-    
+
           if (animationState.current.progress >= 1) {
             const newX = Math.round(targetX);
             const newZ = Math.round(targetZ);
             const gridWidth = gridRef.current[0].length;
             const gridHeight = gridRef.current.length;
-    
+
             if (
               newX < 0 || newX >= gridWidth ||
               newZ < 0 || newZ >= gridHeight ||
@@ -350,22 +351,20 @@ const Map3DView: React.FC<Map3DViewProps> = ({ gridData, containerRef, gridView 
               playerPosition.current.x = newX;
               playerPosition.current.z = newZ;
               console.log("Jugador movido a:", { newX, newZ, direction: playerPosition.current.direction });
-    
-              // Verificar si llegó al finish (celda con valor 3)
+
               if (gridRef.current[newZ][newX] === 3) {
-                alert("¡Nivel Completado!");
-                resetPlayer(); // Reiniciar al inicio tras completar
+                onFinish?.(); // Notificar llegada al finish
+                resetPlayer();
               }
             }
             animationState.current.moving = false;
           }
         }
       }
-    
+
       controlsRef.current?.update();
       rendererRef.current?.render(sceneRef.current!, cameraRef.current!);
     };
-    animate();
     animate();
 
     return () => {
@@ -377,9 +376,9 @@ const Map3DView: React.FC<Map3DViewProps> = ({ gridData, containerRef, gridView 
       sceneRef.current?.clear();
       rendererRef.current?.dispose();
     };
-  }, [gridData, containerRef, gridView, onMovePlayer]);
+  }, [gridData, containerRef, gridView, onMovePlayer, onFinish]);
 
   return <div ref={mountRef} style={{ width: "100%", height: "100%", minHeight: "400px", border: "1px solid black" }} />;
-};
+ };
 
 export default Map3DView;

@@ -8,18 +8,18 @@ function App() {
       <div style={{ padding: "20px" }}>
         <h1>Blockly Navegación</h1>
         <nav style={{ marginBottom: "20px" }}>
-          <Link to="/user" style={{ marginRight: "10px", textDecoration: "none", color: "white" }}>
+          <Link to="/user/1" style={{ marginRight: "10px", textDecoration: "none", color: "white" }}>
             Usuario
           </Link>
-          <Link to="/admin" style={{ textDecoration: "none", color: "white" }}>
+          <Link to="/admin/1" style={{ textDecoration: "none", color: "white" }}>
             Administrador
           </Link>
         </nav>
 
         <Routes>
-          <Route path="/" element={<Navigate to="/user" replace />} />
-          <Route path="/user" element={<User />} />
-          <Route path="/admin/:levelId" element={<Admin />} /> {/* Ruta dinámica para niveles */}
+          <Route path="/" element={<Navigate to="/user/1" replace />} />
+          <Route path="/user/:levelId" element={<User />} />
+          <Route path="/admin/:levelId" element={<Admin />} />
         </Routes>
       </div>
     </Router>

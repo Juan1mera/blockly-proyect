@@ -64,6 +64,7 @@ javascriptGenerator.forBlock['step_left'] = function() { return 'stepLeft();\n';
 interface BlocklyWorkspaceProps {
   workspaceId: string;
   initialState?: any;
+  toolbox?: any;
   onWorkspaceChange?: (state: any) => void;
   onExecute?: (commands: string[]) => void;
 }
