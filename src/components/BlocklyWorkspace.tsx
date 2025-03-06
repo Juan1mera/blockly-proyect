@@ -1,103 +1,193 @@
-import { useEffect, useRef } from "react";
-import * as Blockly from "blockly";
-import "blockly/blocks";
-import { addListBlocks, listToolbox } from "../blocs/Lists";
-import { addLogicBlocks, logicToolbox } from "../blocs/Logic";
-import { addLoopBlocks, loopToolbox } from "../blocs/Loops";
-import { addMathBlocks, mathToolbox } from "../blocs/Math";
-import { addTextBlocks, textToolbox } from "../blocs/Texts";
-import { addMovementBlocks, movementToolbox } from "../blocs/Movements";
-import { getCodeFromWorkspace } from "../utils/getCodeFromWorkspace";
+import React, { useEffect, useRef } from "react";
+import * as Blockly from 'blockly/core';
+import 'blockly/blocks';
+import { javascriptGenerator } from 'blockly/javascript';
 
-const BlocklyWorkspace: React.FC<{
-  setCode: (code: string) => void;
-  language: string;
-  loadBlocks?: string;
-}> = ({ setCode, language, loadBlocks }) => {
-  const blocklyDiv = useRef<HTMLDivElement>(null);
-  const workspace = useRef<Blockly.WorkspaceSvg | null>(null);
+// Definir nuevos bloques
+Blockly.Blocks['turn_right'] = {
+  init: function() {
+    this.appendDummyInput().appendField("Girar a la derecha");
+    this.setPreviousStatement(true);
+    this.setNextStatement(true);
+    this.setColour(160);
+  }
+};
+Blockly.Blocks['turn_left'] = {
+  init: function() {
+    this.appendDummyInput().appendField("Girar a la izquierda");
+    this.setPreviousStatement(true);
+    this.setNextStatement(true);
+    this.setColour(160);
+  }
+};
+Blockly.Blocks['step_forward'] = {
+  init: function() {
+    this.appendDummyInput().appendField("Paso al frente");
+    this.setPreviousStatement(true);
+    this.setNextStatement(true);
+    this.setColour(160);
+  }
+};
+Blockly.Blocks['step_backward'] = {
+  init: function() {
+    this.appendDummyInput().appendField("Paso atrás");
+    this.setPreviousStatement(true);
+    this.setNextStatement(true);
+    this.setColour(160);
+  }
+};
+Blockly.Blocks['step_right'] = {
+  init: function() {
+    this.appendDummyInput().appendField("Paso a la derecha");
+    this.setPreviousStatement(true);
+    this.setNextStatement(true);
+    this.setColour(160);
+  }
+};
+Blockly.Blocks['step_left'] = {
+  init: function() {
+    this.appendDummyInput().appendField("Paso a la izquierda");
+    this.setPreviousStatement(true);
+    this.setNextStatement(true);
+    this.setColour(160);
+  }
+};
 
-  const loadXml = (xml: string) => {
-    if (workspace.current) {
-      if (!xml || xml.trim() === "") {
-        workspace.current.clear();
-        setCode("");
-      } else {
-        try {
-          const xmlDom = Blockly.utils.xml.textToDom(xml);
-          Blockly.Xml.clearWorkspaceAndLoadFromXml(xmlDom, workspace.current);
-          const code = getCodeFromWorkspace(workspace.current, language);
-          setCode(code);
-        } catch (error) {
-          console.error("Error cargando XML:", error);
-          setCode(`// Error cargando bloques: ${String(error)}`);
-        }
-      }
+// Generadores de JavaScript para los nuevos bloques
+javascriptGenerator.forBlock['turn_right'] = function() { return 'turnRight();\n'; };
+javascriptGenerator.forBlock['turn_left'] = function() { return 'turnLeft();\n'; };
+javascriptGenerator.forBlock['step_forward'] = function() { return 'stepForward();\n'; };
+javascriptGenerator.forBlock['step_backward'] = function() { return 'stepBackward();\n'; };
+javascriptGenerator.forBlock['step_right'] = function() { return 'stepRight();\n'; };
+javascriptGenerator.forBlock['step_left'] = function() { return 'stepLeft();\n'; };
+
+interface BlocklyWorkspaceProps {
+  workspaceId: string;
+  initialState?: any;
+  onWorkspaceChange?: (state: any) => void;
+  onExecute?: (commands: string[]) => void;
+}
+
+const BlocklyWorkspace: React.FC<BlocklyWorkspaceProps> = ({ 
+  workspaceId, 
+  initialState, 
+  onWorkspaceChange,
+  onExecute 
+}) => {
+  const workspaceRef = useRef<Blockly.WorkspaceSvg | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const saveWorkspaceState = () => {
+    if (!workspaceRef.current) return null;
+    try {
+      const state = Blockly.serialization.workspaces.save(workspaceRef.current);
+      onWorkspaceChange?.(state);
+      return state;
+    } catch (error) {
+      console.error("Error saving workspace state:", error);
+      return null;
+    }
+  };
+
+  const loadWorkspaceState = (state: any) => {
+    if (!workspaceRef.current || !state) return;
+    try {
+      workspaceRef.current.clear();
+      Blockly.serialization.workspaces.load(state, workspaceRef.current);
+    } catch (error) {
+      console.error("Error loading workspace state:", error);
     }
   };
 
   useEffect(() => {
-    addLoopBlocks();
-    addListBlocks();
-    addTextBlocks();
-    addMathBlocks();
-    addLogicBlocks();
-    addMovementBlocks(); // Incluye bloques 2D y 3D
+    if (!containerRef.current) return;
 
-    const combinedToolbox = `
-      <xml id="toolbox" style="display: none">
-        ${loopToolbox.replace(/<\/?xml>/g, "")}
-        ${listToolbox.replace(/<\/?xml>/g, "")}
-        ${textToolbox.replace(/<\/?xml>/g, "")}
-        ${mathToolbox.replace(/<\/?xml>/g, "")}
-        ${logicToolbox.replace(/<\/?xml>/g, "")}
-        ${movementToolbox.replace(/<\/?xml>/g, "")}
-      </xml>
-    `;
+    workspaceRef.current = Blockly.inject(containerRef.current, {
+      toolbox: {
+        kind: "categoryToolbox",
+        contents: [
+          {
+            kind: "category",
+            name: "Logic",
+            contents: [
+              { kind: "block", type: "controls_if" },
+              { kind: "block", type: "logic_compare" }
+            ]
+          },
+          {
+            kind: "category",
+            name: "Math",
+            contents: [
+              { kind: "block", type: "math_number" },
+              { kind: "block", type: "math_arithmetic" }
+            ]
+          },
+          {
+            kind: "category",
+            name: "Movement",
+            contents: [
+              { kind: "block", type: "turn_right" },
+              { kind: "block", type: "turn_left" },
+              { kind: "block", type: "step_forward" },
+              { kind: "block", type: "step_backward" },
+              { kind: "block", type: "step_right" },
+              { kind: "block", type: "step_left" }
+            ]
+          },
+          {
+            kind: "category",
+            name: "Variables",
+            custom: "VARIABLE"
+          }
+        ]
+      },
+      trashcan: true,
+      move: { scrollbars: true, drag: true, wheel: true },
+      zoom: { controls: true, wheel: true, startScale: 1.0, maxScale: 3, minScale: 0.3 }
+    });
 
-    if (blocklyDiv.current && !workspace.current) {
-      workspace.current = Blockly.inject(blocklyDiv.current, {
-        toolbox: combinedToolbox,
-        scrollbars: true,
-        trashcan: true,
-      });
-
-      workspace.current.addChangeListener(() => {
-        if (workspace.current) {
-          const code = getCodeFromWorkspace(workspace.current, language);
-          setCode(code);
-        }
-      });
-
-      if (loadBlocks) {
-        loadXml(loadBlocks);
-      } else {
-        setCode("");
-      }
+    if (initialState) {
+      loadWorkspaceState(initialState);
     }
+
+    const changeListener = () => saveWorkspaceState();
+    workspaceRef.current.addChangeListener(changeListener);
+
+    const runCode = () => {
+      console.log("Ejecutando código...");
+      const code = javascriptGenerator.workspaceToCode(workspaceRef.current!);
+      const commands = code
+        .split(';\n')
+        .filter((cmd: string) => cmd.trim())
+        .map((cmd: string) => cmd.replace('()', ''));
+      console.log("Comandos generados:", commands);
+      onExecute?.(commands);
+      console.log("Código ejecutado:", code);
+    };
+
+    const button = document.createElement('button');
+    button.textContent = 'Run Code';
+    button.style.position = 'absolute';
+    button.style.top = '10px';
+    button.style.right = '10px';
+    button.onclick = runCode;
+    containerRef.current.appendChild(button);
 
     return () => {
-      if (workspace.current) {
-        workspace.current.dispose();
-        workspace.current = null;
+      workspaceRef.current?.removeChangeListener(changeListener);
+      workspaceRef.current?.dispose();
+      if (containerRef.current?.contains(button)) {
+        containerRef.current.removeChild(button);
       }
     };
-  }, [setCode]);
+  }, [workspaceId, initialState, onWorkspaceChange, onExecute]);
 
-  useEffect(() => {
-    if (workspace.current) {
-      const code = getCodeFromWorkspace(workspace.current, language);
-      setCode(code);
-    }
-  }, [language, setCode]);
-
-  useEffect(() => {
-    if (workspace.current && loadBlocks !== undefined) {
-      loadXml(loadBlocks);
-    }
-  }, [loadBlocks, setCode]);
-
-  return <div ref={blocklyDiv} style={{ height: "520px", width: "100%" }} />;
+  return (
+    <div 
+      ref={containerRef} 
+      style={{ height: "400px", width: "100%", border: "1px solid #ccc", position: "relative" }} 
+    />
+  );
 };
 
 export default BlocklyWorkspace;
