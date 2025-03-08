@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import React, { useMemo, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import BlocklyWorkspace from "../../components/BlocklyWorkspace";
 import Map3DView from "../Admin/components/Map3DView";
@@ -9,7 +9,7 @@ function User() {
   const levelNumber = parseInt(levelId || "1", 10);
 
   const initialGridData = localStorage.getItem(`level_${levelNumber}_gridData`) || 
-    "2 0 1 0 1 1 1 1\n1 1 1 1 1 0 0 1\n0 0 1 1 1 1 1 1\n0 0 0 0 0 0 1 3";
+    "2 0 0 0 0 0 0 0\n1 0 0 0 0 0 0 0\n1 1 1 1 1 1 1 1\n1 1 0 0 0 0 0 3";
   const [gridData] = useState<string>(initialGridData.trim());
 
   const initialWorkspaceState = useMemo(() => {
@@ -23,16 +23,32 @@ function User() {
   }, [levelNumber]);
 
   const movePlayerRef = useRef<(direction: string) => boolean>(() => true);
-  const workspaceRef = useRef<Blockly.WorkspaceSvg | null>(null);
+  const [modalMessage, setModalMessage] = useState<string | null>(null);
 
   const toolbox = useMemo(() => {
-    if (!initialWorkspaceState || !initialWorkspaceState.blocks) return null;
+    // Siempre incluir todos los bloques de movimiento por defecto
+    const defaultMovementBlocks = [
+      { kind: "block", type: "turn_right" },
+      { kind: "block", type: "turn_left" },
+      { kind: "block", type: "step_forward" },
+      { kind: "block", type: "step_backward" },
+      { kind: "block", type: "step_right" },
+      { kind: "block", type: "step_left" },
+    ];
 
-    const blocks = initialWorkspaceState.blocks.keys || [];
-    const movementBlocks = blocks.map((block: any) => ({
-      kind: "block",
-      type: block.type,
-    }));
+    // Si hay bloques guardados en Admin, filtrarlos opcionalmente (o usar todos por defecto)
+    let movementBlocks = defaultMovementBlocks;
+    if (initialWorkspaceState && initialWorkspaceState.blocks && initialWorkspaceState.blocks.blocks) {
+      const savedBlocks = Array.isArray(initialWorkspaceState.blocks.blocks) 
+        ? initialWorkspaceState.blocks.blocks 
+        : [initialWorkspaceState.blocks.blocks];
+      const savedBlockTypes = savedBlocks.map((block: any) => block.type);
+      movementBlocks = defaultMovementBlocks.filter(block => savedBlockTypes.includes(block.type));
+      // Si no hay coincidencias, usar todos los bloques por defecto
+      if (movementBlocks.length === 0) {
+        movementBlocks = defaultMovementBlocks;
+      }
+    }
 
     return {
       kind: "categoryToolbox",
@@ -40,77 +56,103 @@ function User() {
         {
           kind: "category",
           name: "Movimiento",
-          contents: movementBlocks.length > 0 ? movementBlocks : [
-            { kind: "block", type: "turn_right" },
-            { kind: "block", type: "turn_left" },
-            { kind: "block", type: "step_forward" },
-            { kind: "block", type: "step_backward" },
-            { kind: "block", type: "step_right" },
-            { kind: "block", type: "step_left" },
+          contents: movementBlocks,
+        },
+        {
+          kind: "category",
+          name: "Bucles",
+          contents: [
+            {
+              kind: "block",
+              type: "controls_repeat_ext",
+              inputs: {
+                TIMES: {
+                  shadow: {
+                    type: "math_number",
+                    fields: { NUM: 5 },
+                  },
+                },
+              },
+            },
           ],
         },
       ],
     };
   }, [initialWorkspaceState]);
 
-  const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
-
-  const handleExecute = async (commands: string[]) => {
-    console.log("Comandos recibidos en User:", commands);
-    movePlayerRef.current("reset");
-    for (const command of commands) {
-      console.log("Ejecutando comando:", command);
-      const success = movePlayerRef.current(command);
-      if (!success) {
-        console.log("Comando falló o no reconocido, continuando...");
-        continue;
-      }
-      await delay(500);
-    }
-
-    const currentWorkspaceState = workspaceRef.current
-      ? Blockly.serialization.workspaces.save(workspaceRef.current)
-      : null;
-    const storedStateString = JSON.stringify(initialWorkspaceState?.blocks || {});
-    const currentStateString = JSON.stringify(currentWorkspaceState?.blocks || {});
-
-    if (storedStateString !== "{}" && currentWorkspaceState) {
-      if (storedStateString === currentStateString) {
-        alert("Felicidades, Completaste el nivel");
-      } else {
-        alert("Podrías hacerlo de una forma más óptima");
-      }
-    }
+  const getBlockTypes = (blocks: any): string[] => {
+    if (!blocks || !blocks.blocks) return [];
+    const blockList = Array.isArray(blocks.blocks) ? blocks.blocks : [blocks.blocks];
+    return blockList.map((block: any) => block.type).sort();
   };
 
-  useEffect(() => {
-    if (workspaceRef.current) {
-      workspaceRef.current.clear();
+  const compareWorkspaceStates = (userState: any, adminState: any): boolean => {
+    if (!userState || !adminState) return false;
+    const userBlocks = getBlockTypes(userState);
+    const adminBlocks = getBlockTypes(adminState);
+    return userBlocks.length === adminBlocks.length && 
+           userBlocks.every((type: string, index: number) => type === adminBlocks[index]);
+  };
+
+  const handleExecute = (commands: string[]) => {
+    const command = commands[0];
+    if (command === "finish") {
+      const userBlocks = localStorage.getItem(`UserBlocks_level_${levelNumber}`);
+      const adminBlocks = localStorage.getItem(`level_${levelNumber}_workspaceState`);
+      
+      if (userBlocks && adminBlocks) {
+        const userState = JSON.parse(userBlocks);
+        const adminState = JSON.parse(adminBlocks);
+        const areBlocksEqual = compareWorkspaceStates(userState, adminState);
+        
+        if (areBlocksEqual) {
+          setModalMessage("Nivel Completado Correctamente");
+        } else {
+          setModalMessage("Completado, pero la solución no es la óptima");
+        }
+      } else {
+        setModalMessage("Completado, pero no hay solución óptima guardada");
+      }
+      return true;
     }
-  }, [levelNumber]);
+    return movePlayerRef.current(command);
+  };
 
   return (
     <div style={{ padding: "20px" }}>
       <h2>Nivel {levelNumber} - Modo Usuario</h2>
       <BlocklyWorkspace
         workspaceId={`user_level_${levelNumber}`}
-        initialState={null}
+        initialState={null} // No cargar estado inicial en User
         toolbox={toolbox}
         onExecute={handleExecute}
-        onWorkspaceChange={(state) => {
-          workspaceRef.current = state || null;
-        }}
       />
       <div style={{ height: "20px" }} />
       <Map3DView
         gridData={gridData}
         gridView={false}
-        onMovePlayer={(moveFn: (direction: string) => boolean) => {
+        onMovePlayer={(moveFn) => {
           movePlayerRef.current = moveFn;
-          console.log("movePlayer asignado en User");
         }}
-        onFinish={() => handleExecute([])} // Notificar llegada al finish
+        onFinish={() => handleExecute(["finish"])}
       />
+      {modalMessage && (
+        <div style={{
+          position: "fixed",
+          top: "50%",
+          left: "50%",
+          transform: "translate(-50%, -50%)",
+          background: "black",
+          color: "white",
+          padding: "20px",
+          border: "2px solid white",
+          borderRadius: "5px",
+          zIndex: 1000
+        }}>
+          <h2>{modalMessage}</h2>
+          <button onClick={() => setModalMessage(null)}>Cerrar</button>
+        </div>
+      )}
     </div>
   );
 }

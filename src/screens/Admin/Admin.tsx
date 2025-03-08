@@ -1,5 +1,5 @@
 import React, { Component, useCallback, useMemo, useState, useRef } from "react";
-import BlocklyWorkspace from "../../components/BlocklyWorkspace";
+import BlocklyWorkspace, { BlocklyWorkspaceRef } from "../../components/BlocklyWorkspace";
 import CustomButton from "../../components/customs/CustomButton";
 import Map2DView from "./components/Map2DView";
 import Map3DView from "./components/Map3DView";
@@ -41,6 +41,7 @@ function Admin() {
     "2 0 1 0 1 1 1 1\n1 1 1 1 1 0 0 1\n0 0 1 1 1 1 1 1\n0 0 0 0 0 0 1 3";
   const [gridData, setGridData] = useState<string>(initialGridData.trim());
   const movePlayerRef = useRef<(direction: string) => boolean>(() => true);
+  const workspaceRef = useRef<BlocklyWorkspaceRef>(null);
 
   const initialWorkspaceState = useMemo(() => {
     const storedState = localStorage.getItem(`level_${levelNumber}_workspaceState`);
@@ -52,14 +53,19 @@ function Admin() {
     }
   }, [levelNumber]);
 
-  const handleWorkspaceChange = useCallback((workspaceState: any) => {
-    localStorage.setItem(`level_${levelNumber}_workspaceState`, JSON.stringify(workspaceState));
-  }, [levelNumber]);
+  const [savedBlocks, setSavedBlocks] = useState<string | null>(null);
 
   const handleSave = useCallback(() => {
-    const levelData = { nivel: levelNumber, mapa: gridData };
+    const currentWorkspaceState = workspaceRef.current?.getWorkspaceState();
+    if (!currentWorkspaceState) {
+      console.error("No se pudo obtener el estado actual del workspace");
+      return;
+    }
+    const levelData = { nivel: levelNumber, mapa: gridData, bloques: currentWorkspaceState };
     localStorage.setItem(`level_${levelNumber}_gridData`, gridData);
+    localStorage.setItem(`level_${levelNumber}_workspaceState`, JSON.stringify(currentWorkspaceState));
     localStorage.setItem(`level_${levelNumber}`, JSON.stringify(levelData));
+    setSavedBlocks(JSON.stringify(currentWorkspaceState, null, 2));
     console.log("Nivel guardado:", levelData);
   }, [gridData, levelNumber]);
 
@@ -67,26 +73,68 @@ function Admin() {
 
   const handleExecute = useCallback(async (commands: string[]) => {
     console.log("Comandos recibidos en Admin:", commands);
-    movePlayerRef.current("reset"); // Reiniciar al inicio antes de ejecutar
+    const resetSuccess = movePlayerRef.current("reset");
+    if (!resetSuccess) {
+      console.log("Fallo al reiniciar, deteniendo ejecución...");
+      return;
+    }
+    await delay(500);
+
     for (const command of commands) {
       console.log("Ejecutando comando:", command);
       const success = movePlayerRef.current(command);
       if (!success) {
-        console.log("Comando falló o no reconocido, continuando...");
-        continue;
+        console.log("Comando falló, deteniendo ejecución...");
+        break;
       }
-      // Esperar un tiempo fijo para la animación (ajustable)
-      await delay(500); // 500ms para coincidir con la duración aproximada de la animación
+      await delay(500);
     }
   }, []);
+
+  const toolbox = {
+    kind: "categoryToolbox",
+    contents: [
+      {
+        kind: "category",
+        name: "Movimiento",
+        contents: [
+          { kind: "block", type: "turn_right" },
+          { kind: "block", type: "turn_left" },
+          { kind: "block", type: "step_forward" },
+          { kind: "block", type: "step_backward" },
+          { kind: "block", type: "step_right" },
+          { kind: "block", type: "step_left" },
+        ],
+      },
+      {
+        kind: "category",
+        name: "Bucles",
+        contents: [
+          {
+            kind: "block",
+            type: "controls_repeat_ext",
+            inputs: {
+              TIMES: {
+                shadow: {
+                  type: "math_number",
+                  fields: { NUM: 5 },
+                },
+              },
+            },
+          },
+        ],
+      },
+    ],
+  };
 
   return (
     <div style={{ padding: "20px" }}>
       <ErrorBoundary>
         <BlocklyWorkspace 
+          ref={workspaceRef}
           workspaceId={`level_${levelNumber}`}
           initialState={initialWorkspaceState}
-          onWorkspaceChange={handleWorkspaceChange}
+          toolbox={toolbox}
           onExecute={handleExecute}
         />
       </ErrorBoundary>
@@ -114,7 +162,10 @@ function Admin() {
         <pre>{gridData}</pre>
       </div>
       
-
+      <div style={{ marginTop: "20px" }}>
+        <h3>Bloques Guardados (Nivel {levelNumber})</h3>
+        <pre>{savedBlocks || "No hay bloques guardados aún."}</pre>
+      </div>
       
       <div style={{ height: "200px" }} />
     </div>

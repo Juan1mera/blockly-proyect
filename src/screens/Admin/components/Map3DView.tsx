@@ -9,7 +9,7 @@ interface Map3DViewProps {
   containerRef?: React.RefObject<HTMLDivElement>;
   gridView?: boolean;
   onMovePlayer?: (moveFn: (direction: string) => boolean) => void;
-  onFinish?: () => void; // Añadido para notificar llegada al finish
+  onFinish?: () => void;
 }
 
 interface ModelObject extends THREE.Object3D {
@@ -23,12 +23,13 @@ const Map3DView: React.FC<Map3DViewProps> = ({ gridData, containerRef, gridView 
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
   const controlsRef = useRef<OrbitControls | null>(null);
   const objectRefs = useRef<{ [key: string]: THREE.Object3D }>({});
-  const playerPosition = useRef<{ x: number; z: number; direction: string } | null>(null);
+  const playerPosition = useRef<{ x: number; z: number; direction: string; rotation: number } | null>(null);
   const gridRef = useRef<number[][]>([]);
-  const initialPosition = useRef<{ x: number; z: number; direction: string } | null>(null);
-  const animationState = useRef<{ targetX: number; targetZ: number; progress: number; moving: boolean }>({
+  const initialPosition = useRef<{ x: number; z: number; direction: string; rotation: number } | null>(null);
+  const animationState = useRef<{ targetX: number; targetZ: number; targetRotation: number; progress: number; moving: boolean }>({
     targetX: 0,
     targetZ: 0,
+    targetRotation: 0,
     progress: 1,
     moving: false,
   });
@@ -191,10 +192,11 @@ const Map3DView: React.FC<Map3DViewProps> = ({ gridData, containerRef, gridView 
             }
             const player = playerModel.clone();
             player.position.set(x, 0.5, z);
+            player.rotation.y = 0;
             sceneRef.current.add(player);
             objectRefs.current[`player_${x}_${z}`] = player;
-            playerPosition.current = { x, z, direction: "right" };
-            initialPosition.current = { x, z, direction: "right" };
+            playerPosition.current = { x, z, direction: "right", rotation: 0 };
+            initialPosition.current = { x, z, direction: "right", rotation: 0 };
           } else if (state === 3) {
             const needsBase = grid[z][x] !== 1;
             if (needsBase) {
@@ -232,37 +234,48 @@ const Map3DView: React.FC<Map3DViewProps> = ({ gridData, containerRef, gridView 
       const initial = initialPosition.current;
       const newPlayer = models.player!.clone();
       newPlayer.position.set(initial.x, 0.5, initial.z);
+      newPlayer.rotation.y = initial.rotation;
       sceneRef.current.add(newPlayer);
       objectRefs.current[`player_${initial.x}_${initial.z}`] = newPlayer;
       playerPosition.current = { ...initial };
-      animationState.current = { targetX: initial.x, targetZ: initial.z, progress: 1, moving: false };
-      console.log("Jugador reiniciado a:", initial);
+      animationState.current = { targetX: initial.x, targetZ: initial.z, targetRotation: initial.rotation, progress: 1, moving: false };
     };
 
     const movePlayer = (command: string): boolean => {
       if (!playerPosition.current || !sceneRef.current || animationState.current.moving) return false;
 
-      let { x, z, direction: currentDirection } = playerPosition.current;
+      let { x, z, direction: currentDirection, rotation } = playerPosition.current;
       let newX = x;
       let newZ = z;
       let newDirection = currentDirection;
+      let newRotation = rotation;
 
-      console.log("Intentando ejecutar comando:", command, "desde", { x, z }, "dirección:", currentDirection);
+      const cleanedCommand = command.trim();
 
-      switch (command) {
+      switch (cleanedCommand) {
         case 'turnRight':
           newDirection = currentDirection === "right" ? "down" :
                         currentDirection === "down" ? "left" :
                         currentDirection === "left" ? "up" : "right";
+          newRotation = currentDirection === "right" ? Math.PI / 2 :
+                        currentDirection === "down" ? Math.PI :
+                        currentDirection === "left" ? -Math.PI / 2 : 0;
           playerPosition.current.direction = newDirection;
-          console.log("Jugador girado a:", newDirection);
+          playerPosition.current.rotation = newRotation;
+          animationState.current = { targetX: x, targetZ: z, targetRotation: newRotation, progress: 0, moving: true };
+          console.log(`Girando a ${newDirection}`);
           return true;
         case 'turnLeft':
           newDirection = currentDirection === "right" ? "up" :
                          currentDirection === "up" ? "left" :
                          currentDirection === "left" ? "down" : "right";
+          newRotation = currentDirection === "right" ? -Math.PI / 2 :
+                        currentDirection === "up" ? Math.PI :
+                        currentDirection === "left" ? Math.PI / 2 : 0;
           playerPosition.current.direction = newDirection;
-          console.log("Jugador girado a:", newDirection);
+          playerPosition.current.rotation = newRotation;
+          animationState.current = { targetX: x, targetZ: z, targetRotation: newRotation, progress: 0, moving: true };
+          console.log(`Girando a ${newDirection}`);
           return true;
         case 'stepForward':
           if (currentDirection === "right") newX++;
@@ -292,7 +305,7 @@ const Map3DView: React.FC<Map3DViewProps> = ({ gridData, containerRef, gridView 
           resetPlayer();
           return true;
         default:
-          console.log("Comando no reconocido:", command);
+          console.log(`Comando no reconocido: ${cleanedCommand}`);
           return false;
       }
 
@@ -304,13 +317,11 @@ const Map3DView: React.FC<Map3DViewProps> = ({ gridData, containerRef, gridView 
         newZ < 0 || newZ >= gridHeight ||
         gridRef.current[newZ][newX] === 0
       ) {
-        console.log("Movimiento inválido, iniciando animación hacia fuera:", { newX, newZ });
-        animationState.current = { targetX: newX, targetZ: newZ, progress: 0, moving: true };
-        return true;
+        animationState.current = { targetX: newX, targetZ: newZ, targetRotation: rotation, progress: 0, moving: true };
+        return false;
       }
 
-      animationState.current = { targetX: newX, targetZ: newZ, progress: 0, moving: true };
-      console.log("Iniciando movimiento hacia:", { newX, newZ });
+      animationState.current = { targetX: newX, targetZ: newZ, targetRotation: rotation, progress: 0, moving: true };
       return true;
     };
 
@@ -322,7 +333,7 @@ const Map3DView: React.FC<Map3DViewProps> = ({ gridData, containerRef, gridView 
       requestAnimationFrame(animate);
 
       if (playerPosition.current && animationState.current.moving) {
-        const { targetX, targetZ, progress } = animationState.current;
+        const { targetX, targetZ, targetRotation, progress } = animationState.current;
         const player = objectRefs.current[`player_${playerPosition.current.x}_${playerPosition.current.z}`];
         if (player) {
           const speed = 0.05;
@@ -330,7 +341,9 @@ const Map3DView: React.FC<Map3DViewProps> = ({ gridData, containerRef, gridView 
 
           const currentX = THREE.MathUtils.lerp(playerPosition.current.x, targetX, animationState.current.progress);
           const currentZ = THREE.MathUtils.lerp(playerPosition.current.z, targetZ, animationState.current.progress);
+          const currentRotation = THREE.MathUtils.lerp(playerPosition.current.rotation, targetRotation, animationState.current.progress);
           player.position.set(currentX, 0.5, currentZ);
+          player.rotation.y = currentRotation;
 
           if (animationState.current.progress >= 1) {
             const newX = Math.round(targetX);
@@ -344,17 +357,14 @@ const Map3DView: React.FC<Map3DViewProps> = ({ gridData, containerRef, gridView 
               gridRef.current[newZ][newX] === 0
             ) {
               alert("¡Te saliste del camino o del mapa!");
-              resetPlayer();
             } else {
               delete objectRefs.current[`player_${playerPosition.current.x}_${playerPosition.current.z}`];
               objectRefs.current[`player_${newX}_${newZ}`] = player;
               playerPosition.current.x = newX;
               playerPosition.current.z = newZ;
-              console.log("Jugador movido a:", { newX, newZ, direction: playerPosition.current.direction });
 
               if (gridRef.current[newZ][newX] === 3) {
-                onFinish?.(); // Notificar llegada al finish
-                resetPlayer();
+                onFinish?.();
               }
             }
             animationState.current.moving = false;
@@ -379,6 +389,6 @@ const Map3DView: React.FC<Map3DViewProps> = ({ gridData, containerRef, gridView 
   }, [gridData, containerRef, gridView, onMovePlayer, onFinish]);
 
   return <div ref={mountRef} style={{ width: "100%", height: "100%", minHeight: "400px", border: "1px solid black" }} />;
- };
+};
 
 export default Map3DView;
