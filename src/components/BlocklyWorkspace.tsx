@@ -1,96 +1,14 @@
-import React, { useEffect, useRef, useImperativeHandle, forwardRef } from "react";
+import { useEffect, useRef, useImperativeHandle, forwardRef } from "react";
 import * as Blockly from 'blockly/core';
 import 'blockly/blocks';
 import { javascriptGenerator } from 'blockly/javascript';
-
-// Definición de bloques de movimiento
-Blockly.Blocks['turn_right'] = {
-  init: function() {
-    this.appendDummyInput().appendField("Girar a la derecha");
-    this.setPreviousStatement(true);
-    this.setNextStatement(true);
-    this.setColour(160);
-  }
-};
-Blockly.Blocks['turn_left'] = {
-  init: function() {
-    this.appendDummyInput().appendField("Girar a la izquierda");
-    this.setPreviousStatement(true);
-    this.setNextStatement(true);
-    this.setColour(160);
-  }
-};
-Blockly.Blocks['step_forward'] = {
-  init: function() {
-    this.appendDummyInput().appendField("Paso al frente");
-    this.setPreviousStatement(true);
-    this.setNextStatement(true);
-    this.setColour(160);
-  }
-};
-Blockly.Blocks['step_backward'] = {
-  init: function() {
-    this.appendDummyInput().appendField("Paso atrás");
-    this.setPreviousStatement(true);
-    this.setNextStatement(true);
-    this.setColour(160);
-  }
-};
-Blockly.Blocks['step_right'] = {
-  init: function() {
-    this.appendDummyInput().appendField("Paso a la derecha");
-    this.setPreviousStatement(true);
-    this.setNextStatement(true);
-    this.setColour(160);
-  }
-};
-Blockly.Blocks['step_left'] = {
-  init: function() {
-    this.appendDummyInput().appendField("Paso a la izquierda");
-    this.setPreviousStatement(true);
-    this.setNextStatement(true);
-    this.setColour(160);
-  }
-};
-
-// Definición del bloque de repetición
-Blockly.Blocks['controls_repeat_ext'] = {
-  init: function() {
-    this.appendValueInput("TIMES")
-        .setCheck("Number")
-        .appendField("repetir");
-    this.appendStatementInput("DO")
-        .appendField("veces");
-    this.setPreviousStatement(true);
-    this.setNextStatement(true);
-    this.setColour(120);
-    this.setInputsInline(true);
-  }
-};
-
-// Generadores de código
-javascriptGenerator.forBlock['turn_right'] = function() { return 'turnRight();\n'; };
-javascriptGenerator.forBlock['turn_left'] = function() { return 'turnLeft();\n'; };
-javascriptGenerator.forBlock['step_forward'] = function() { return 'stepForward();\n'; };
-javascriptGenerator.forBlock['step_backward'] = function() { return 'stepBackward();\n'; };
-javascriptGenerator.forBlock['step_right'] = function() { return 'stepRight();\n'; };
-javascriptGenerator.forBlock['step_left'] = function() { return 'stepLeft();\n'; };
-javascriptGenerator.forBlock['controls_repeat_ext'] = function(block) {
-  const times = javascriptGenerator.valueToCode(block, 'TIMES', javascriptGenerator.ORDER_ATOMIC) || '5';
-  const code = javascriptGenerator.statementToCode(block, 'DO');
-  let repeatedCode = '';
-  for (let i = 0; i < parseInt(times); i++) {
-    repeatedCode += code;
-  }
-  return repeatedCode;
-};
-
+import './BlocklyView/blocklyConfig'
 interface BlocklyWorkspaceProps {
   workspaceId: string;
   initialState?: any;
   toolbox?: any;
   onWorkspaceChange?: (state: any) => void;
-  onExecute?: (commands: string[]) => void;
+  onExecute?: (commands: string[]) => Promise<void>;
 }
 
 export interface BlocklyWorkspaceRef {
@@ -190,23 +108,33 @@ const BlocklyWorkspace = forwardRef<BlocklyWorkspaceRef, BlocklyWorkspaceProps>(
     const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
     const runCode = async () => {
-      const code = javascriptGenerator.workspaceToCode(workspaceRef.current!);
+      if (!workspaceRef.current || !onExecute) return;
+
+      const code = javascriptGenerator.workspaceToCode(workspaceRef.current);
+      console.log("Código generado:", code);
       const commands = code
         .split(';\n')
         .filter((cmd: string) => cmd.trim())
-        .map((cmd: string) => cmd.replace('()', '').trim()); // Limpiar espacios
+        .map((cmd: string) => cmd.replace('()', '').trim());
+
+      console.log("Comandos procesados:", commands);
 
       const levelNumber = workspaceId.split('_')[2];
       if (workspaceId.startsWith("user_")) {
-        const userBlocks = Blockly.serialization.workspaces.save(workspaceRef.current!);
+        const userBlocks = Blockly.serialization.workspaces.save(workspaceRef.current);
         localStorage.setItem(`UserBlocks_level_${levelNumber}`, JSON.stringify(userBlocks));
       }
 
-      const resetSuccess = onExecute?.(["reset"]);
-      if (!resetSuccess) return;
+      // Ejecutar reset primero
+      await onExecute(["reset"]);
       await delay(500);
 
-      await onExecute?.(commands);
+      // Ejecutar los comandos generados
+      if (commands.length > 0) {
+        await onExecute(commands);
+      } else {
+        console.log("No hay comandos para ejecutar.");
+      }
     };
 
     const button = document.createElement('button');

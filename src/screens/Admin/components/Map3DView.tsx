@@ -317,6 +317,7 @@ const Map3DView: React.FC<Map3DViewProps> = ({ gridData, containerRef, gridView 
         newZ < 0 || newZ >= gridHeight ||
         gridRef.current[newZ][newX] === 0
       ) {
+        console.log(`Movimiento inválido: ${cleanedCommand} a (${newX}, ${newZ}) fuera del mapa o en obstáculo`);
         animationState.current = { targetX: newX, targetZ: newZ, targetRotation: rotation, progress: 0, moving: true };
         return false;
       }
@@ -356,7 +357,7 @@ const Map3DView: React.FC<Map3DViewProps> = ({ gridData, containerRef, gridView 
               newZ < 0 || newZ >= gridHeight ||
               gridRef.current[newZ][newX] === 0
             ) {
-              alert("¡Te saliste del camino o del mapa!");
+              console.log("Jugador se salió del mapa o chocó con un obstáculo");
             } else {
               delete objectRefs.current[`player_${playerPosition.current.x}_${playerPosition.current.z}`];
               objectRefs.current[`player_${newX}_${newZ}`] = player;
@@ -391,4 +392,4 @@ const Map3DView: React.FC<Map3DViewProps> = ({ gridData, containerRef, gridView 
   return <div ref={mountRef} style={{ width: "100%", height: "100%", minHeight: "400px", border: "1px solid black" }} />;
 };
 
-export default Map3DView;
+export default Map3DView; 

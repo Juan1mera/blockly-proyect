@@ -26,37 +26,20 @@ function User() {
   const [modalMessage, setModalMessage] = useState<string | null>(null);
 
   const toolbox = useMemo(() => {
-    // Siempre incluir todos los bloques de movimiento por defecto
-    const defaultMovementBlocks = [
-      { kind: "block", type: "turn_right" },
-      { kind: "block", type: "turn_left" },
-      { kind: "block", type: "step_forward" },
-      { kind: "block", type: "step_backward" },
-      { kind: "block", type: "step_right" },
-      { kind: "block", type: "step_left" },
-    ];
-
-    // Si hay bloques guardados en Admin, filtrarlos opcionalmente (o usar todos por defecto)
-    let movementBlocks = defaultMovementBlocks;
-    if (initialWorkspaceState && initialWorkspaceState.blocks && initialWorkspaceState.blocks.blocks) {
-      const savedBlocks = Array.isArray(initialWorkspaceState.blocks.blocks) 
-        ? initialWorkspaceState.blocks.blocks 
-        : [initialWorkspaceState.blocks.blocks];
-      const savedBlockTypes = savedBlocks.map((block: any) => block.type);
-      movementBlocks = defaultMovementBlocks.filter(block => savedBlockTypes.includes(block.type));
-      // Si no hay coincidencias, usar todos los bloques por defecto
-      if (movementBlocks.length === 0) {
-        movementBlocks = defaultMovementBlocks;
-      }
-    }
-
     return {
       kind: "categoryToolbox",
       contents: [
         {
           kind: "category",
           name: "Movimiento",
-          contents: movementBlocks,
+          contents: [
+            { kind: "block", type: "turn_right" },
+            { kind: "block", type: "turn_left" },
+            { kind: "block", type: "step_forward" },
+            { kind: "block", type: "step_backward" },
+            { kind: "block", type: "step_right" },
+            { kind: "block", type: "step_left" },
+          ],
         },
         {
           kind: "category",
@@ -78,7 +61,7 @@ function User() {
         },
       ],
     };
-  }, [initialWorkspaceState]);
+  }, []);
 
   const getBlockTypes = (blocks: any): string[] => {
     if (!blocks || !blocks.blocks) return [];
@@ -94,28 +77,38 @@ function User() {
            userBlocks.every((type: string, index: number) => type === adminBlocks[index]);
   };
 
-  const handleExecute = (commands: string[]) => {
-    const command = commands[0];
-    if (command === "finish") {
-      const userBlocks = localStorage.getItem(`UserBlocks_level_${levelNumber}`);
-      const adminBlocks = localStorage.getItem(`level_${levelNumber}_workspaceState`);
-      
-      if (userBlocks && adminBlocks) {
-        const userState = JSON.parse(userBlocks);
-        const adminState = JSON.parse(adminBlocks);
-        const areBlocksEqual = compareWorkspaceStates(userState, adminState);
+  const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+  const handleExecute = async (commands: string[]) => {
+    console.log("Comandos recibidos en User:", commands);
+    for (const command of commands) {
+      console.log("Ejecutando comando:", command);
+      if (command === "finish") {
+        const userBlocks = localStorage.getItem(`UserBlocks_level_${levelNumber}`);
+        const adminBlocks = localStorage.getItem(`level_${levelNumber}_workspaceState`);
         
-        if (areBlocksEqual) {
-          setModalMessage("Nivel Completado Correctamente");
+        if (userBlocks && adminBlocks) {
+          const userState = JSON.parse(userBlocks);
+          const adminState = JSON.parse(adminBlocks);
+          const areBlocksEqual = compareWorkspaceStates(userState, adminState);
+          
+          if (areBlocksEqual) {
+            setModalMessage("Nivel Completado Correctamente");
+          } else {
+            setModalMessage("Completado, pero la solución no es la óptima");
+          }
         } else {
-          setModalMessage("Completado, pero la solución no es la óptima");
+          setModalMessage("Completado, pero no hay solución óptima guardada");
         }
-      } else {
-        setModalMessage("Completado, pero no hay solución óptima guardada");
+        return;
       }
-      return true;
+      const success = movePlayerRef.current(command);
+      if (!success) {
+        console.log("Comando falló, deteniendo ejecución...");
+        break;
+      }
+      await delay(500);
     }
-    return movePlayerRef.current(command);
   };
 
   return (
@@ -123,7 +116,7 @@ function User() {
       <h2>Nivel {levelNumber} - Modo Usuario</h2>
       <BlocklyWorkspace
         workspaceId={`user_level_${levelNumber}`}
-        initialState={null} // No cargar estado inicial en User
+        initialState={null}
         toolbox={toolbox}
         onExecute={handleExecute}
       />

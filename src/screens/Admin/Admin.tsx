@@ -73,13 +73,6 @@ function Admin() {
 
   const handleExecute = useCallback(async (commands: string[]) => {
     console.log("Comandos recibidos en Admin:", commands);
-    const resetSuccess = movePlayerRef.current("reset");
-    if (!resetSuccess) {
-      console.log("Fallo al reiniciar, deteniendo ejecución...");
-      return;
-    }
-    await delay(500);
-
     for (const command of commands) {
       console.log("Ejecutando comando:", command);
       const success = movePlayerRef.current(command);
