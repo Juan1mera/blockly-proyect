@@ -17,8 +17,8 @@ const Map2DView: React.FC<Map2DViewProps> = ({ initialGrid, onGridChange }) => {
   const [grid, setGrid] = useState<Cell[][]>(() => {
     if (initialGrid) {
       const rowsData = initialGrid.trim().split("\n");
-      const rowLength = rowsData[0].trim().split(" ").length;
-      const colLength = rowsData.length;
+      // const rowLength = rowsData[0].trim().split(" ").length;
+      // const colLength = rowsData.length;
       return rowsData.map((row, y) =>
         row.trim().split(" ").map((state, x) => ({
           x,

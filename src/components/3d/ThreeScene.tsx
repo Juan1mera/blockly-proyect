@@ -1,9 +1,7 @@
 import { useEffect, useRef, useMemo } from "react";
 import * as THREE from "three";
+import { GLTFLoader, MTLLoader, OBJLoader } from "three/examples/jsm/Addons.js";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
-import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
-import { OBJLoader } from "three/examples/jsm/loaders/OBJLoader";
-import { MTLLoader } from "three/examples/jsm/loaders/MTLLoader";
 
 interface Object3DState {
   x: number;
@@ -132,7 +130,7 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ scenario, user, coins, goal, le
       const material = new THREE.MeshBasicMaterial({ color: coin.color });
       const sphere = new THREE.Mesh(geometry, material);
       sphere.position.set(coin.x + 0.5, coin.y + 0.5, coin.z + 0.5);
-      sceneRef.current.add(sphere);
+      sceneRef.current!.add(sphere);
       objectRefs.current[`coin_${index}`] = sphere;
     });
 
@@ -183,7 +181,7 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ scenario, user, coins, goal, le
           (gltf) => {
             gltf.scene.position.set(x, y, z);
             scene.add(gltf.scene);
-            objectRefs.current[key] = gltf.scene as THREE.Mesh;
+            objectRefs.current[key] = gltf.scene as unknown as THREE.Object3D; // Cast seguro
           },
           undefined,
           (error) => console.error("Error cargando GLTF:", error)
@@ -200,7 +198,7 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ scenario, user, coins, goal, le
               (object) => {
                 object.position.set(x, y, z);
                 scene.add(object);
-                objectRefs.current[key] = object as THREE.Mesh;
+                objectRefs.current[key] = object as unknown as THREE.Object3D; // Cast seguro
               },
               undefined,
               (error) => console.error("Error cargando OBJ:", error)
