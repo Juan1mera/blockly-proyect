@@ -80,101 +80,75 @@ function Admin() {
   }, []);
 
   return (
-    <div
-      style={{
-        padding: "10px",
-        height: "100vh",
-        display: "flex",
-        flexDirection: "column",
-        boxSizing: "border-box",
-        overflow: "hidden" // Evita scroll en el contenedor principal
-      }}
-    >
-      <h2 style={{ marginBottom: "10px", flexShrink: 0 }}>
-        Nivel {levelNumber} - Modo Admin
-      </h2>
-  
-      {/* Contenedor de Workspace y Map3DView */}
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "row",
-          flex: "1 1 auto", 
-          overflow: "hidden", // Previene overflow
-          minHeight: "700px", // Altura mínima para garantizar visibilidad
-          maxHeight: "calc(70vh - 20px)" // Altura máxima ajustable - puedes modificar este valor
-        }}
-      >
-        {/* Workspace a la izquierda */}
-        <div
-          style={{
-            width: "60%",
-            display: "flex",
-            borderRight: "1px solid #ccc",
-            overflow: "hidden"
-          }}
-        >
-          <ErrorBoundary>
-            <BlocklyWorkspace
-              ref={workspaceRef}
-              workspaceId={`level_${levelNumber}`}
-              initialState={initialWorkspaceState}
-              onExecute={handleExecute}
-            />
-          </ErrorBoundary>
-        </div>
-  
-        {/* Map3DView a la derecha */}
-        <div
-          style={{
-            width: "40%",
-            display: "flex",
-            overflow: "hidden"
-          }}
-        >
-          <Map3DView
-            gridData={gridData}
-            gridView
-            onMovePlayer={(moveFn: (direction: string) => boolean) => {
-              movePlayerRef.current = moveFn;
-              console.log("movePlayer asignado en Admin");
-            }}
-          />
-        </div>
-      </div>
-  
-      {/* Sección inferior */}
-      <div
-        style={{
-          marginTop: "10px",
-          display: "flex",
-          flexDirection: "column",
-          gap: "10px",
-          flexShrink: 0,
-          overflow: "auto" // Permite scroll si es necesario
-        }}
-      >
-        <CustomButton text="Guardar" onClick={handleSave} />
-        <div style={{ height: "200px", overflow: "auto" }}>
-          <Map2DView
-            initialGrid={gridData}
-            onGridChange={(newGridData) => setGridData(newGridData.trim())}
-          />
-        </div>
-  
-        <div>
-          <h3>Datos de la Cuadrícula (Nivel {levelNumber})</h3>
-          <pre style={{ fontSize: "12px" }}>{gridData}</pre>
-        </div>
-  
-        <div>
-          <h3>Bloques Guardados (Nivel {levelNumber})</h3>
-          <pre style={{ fontSize: "12px" }}>
-            {savedBlocks || "No hay bloques guardados aún."}
-          </pre>
-        </div>
-      </div>
+<div
+  style={{
+    padding: "10px",
+    display: "flex",
+    flexDirection: "column",
+    boxSizing: "border-box",
+    overflow: "hidden"
+  }}
+>
+  <h2 style={{ marginBottom: "10px", flexShrink: 0 }}>
+    Nivel {levelNumber} - Modo Admin
+  </h2>
+
+  {/* Contenedor de Workspace y Map3DView */}
+  <div
+    style={{
+      display: "flex",
+      flexDirection: "row",
+      flex: "0 1 60%", 
+      overflow: "hidden",
+      minHeight: "400px", 
+    }}
+  >
+    {/* Workspace */}
+    <div style={{ width: "60%", display: "flex", borderRight: "1px solid #ccc", overflow: "hidden" }}>
+      <ErrorBoundary>
+        <BlocklyWorkspace
+          ref={workspaceRef}
+          workspaceId={`level_${levelNumber}`}
+          initialState={initialWorkspaceState}
+          onExecute={handleExecute}
+        />
+      </ErrorBoundary>
     </div>
+
+    {/* Map3DView */}
+    <div style={{ width: "40%", display: "flex", overflow: "hidden" }}>
+      <Map3DView
+        gridData={gridData}
+        gridView
+        onMovePlayer={(moveFn) => {
+          movePlayerRef.current = moveFn;
+          console.log("movePlayer asignado en Admin");
+        }}
+      />
+    </div>
+  </div>
+  <CustomButton text="Guardar" onClick={handleSave} />
+
+  {/* Sección inferior */}
+  <div
+  style={{
+    marginTop: "10px",
+    display: "flex",
+    flexDirection: "column",
+    gap: "10px",
+    flex: "0 1 40%",
+    overflow: "auto"
+  }}
+>
+  <div style={{ height: "100%",}}>
+    <Map2DView
+      initialGrid={gridData}
+      onGridChange={(newGridData) => setGridData(newGridData.trim())}
+    />
+  </div>
+
+</div>
+</div>
   );
 }
 

@@ -61,7 +61,7 @@ Blockly.Blocks['controls_repeat_ext'] = {
   init: function() {
     this.appendValueInput("TIMES")
         .setCheck("Number")
-        .appendField("repetir"); // Simplificado, sin args adicionales
+        .appendField("repetir");
     this.appendStatementInput("DO")
         .appendField("veces");
     this.setPreviousStatement(true);
@@ -97,7 +97,7 @@ javascriptGenerator.forBlock['step_left'] = function() {
 };
 
 javascriptGenerator.forBlock['controls_repeat_ext'] = function(block) {
-  let times = javascriptGenerator.valueToCode(block, 'TIMES', javascriptGenerator.ORDER_NONE) || '5';
+  let times = javascriptGenerator.valueToCode(block, 'TIMES', 0) || '5';
   const repeatCount = isNaN(parseInt(times)) ? 5 : parseInt(times);
   const code = javascriptGenerator.statementToCode(block, 'DO');
   let repeatedCode = '';

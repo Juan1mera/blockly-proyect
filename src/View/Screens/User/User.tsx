@@ -1,8 +1,8 @@
-import React, { useState, useRef } from "react";
+import { useState, useRef } from "react";
 import { useParams } from "react-router-dom";
 import BlocklyWorkspace from "../../components/BlocklyView/BlocklyWorkspace";
 import Map3DView from "../../components/Map3DView";
-import { loadLevelData, saveWorkspaceState, loadWorkspaceState, delay } from "../../../Lib/Functions/utils";
+import { loadLevelData, saveWorkspaceState, delay } from "../../../Lib/Functions/utils";
 import * as Blockly from 'blockly/core';
 
 function User() {
