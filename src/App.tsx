@@ -1,6 +1,6 @@
 import { BrowserRouter as Router, Route, Routes, Link, Navigate } from "react-router-dom";
-import Admin from "./screens/Admin/Admin";
-import User from "./screens/User/User";
+import User from "./View/Screens/User/User";
+import Admin from "./View/Screens/Admin/Admin";
 
 function App() {
   return (

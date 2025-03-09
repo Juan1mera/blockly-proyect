@@ -1,4 +1,4 @@
-import { colors } from "../../constants/colors";
+import { colors } from "../../../Lib/constants/colors";
 
 interface CustomButtonProps {
     onClick: () => void;

@@ -56,12 +56,12 @@ Blockly.Blocks['step_left'] = {
   }
 };
 
-// Definición del bloque de repetición
+// Definición del bloque de repetición corregida
 Blockly.Blocks['controls_repeat_ext'] = {
   init: function() {
     this.appendValueInput("TIMES")
         .setCheck("Number")
-        .appendField("repetir");
+        .appendField("repetir"); // Simplificado, sin args adicionales
     this.appendStatementInput("DO")
         .appendField("veces");
     this.setPreviousStatement(true);
@@ -97,9 +97,7 @@ javascriptGenerator.forBlock['step_left'] = function() {
 };
 
 javascriptGenerator.forBlock['controls_repeat_ext'] = function(block) {
-  // Obtener el valor de TIMES o usar 5 como predeterminado si no hay bloque conectado
   let times = javascriptGenerator.valueToCode(block, 'TIMES', javascriptGenerator.ORDER_NONE) || '5';
-  // Si times no es un número válido (por ejemplo, está vacío o es código complejo), usar 5
   const repeatCount = isNaN(parseInt(times)) ? 5 : parseInt(times);
   const code = javascriptGenerator.statementToCode(block, 'DO');
   let repeatedCode = '';
@@ -109,8 +107,6 @@ javascriptGenerator.forBlock['controls_repeat_ext'] = function(block) {
   return repeatedCode;
 };
 
-// Exportar para referencia si es necesario (opcional)
 export const initializeBlockly = () => {
-  // Este método no es estrictamente necesario, pero puede ser útil si necesitas inicializar algo más tarde
   console.log("Blockly blocks and generators initialized.");
 };
