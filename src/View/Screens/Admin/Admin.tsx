@@ -44,7 +44,6 @@ function Admin() {
   const initialWorkspaceState = initialLevelData?.bloquesUsados || null;
 
   const [gridData, setGridData] = useState<string>(initialGridData.trim());
-  const [savedBlocks, setSavedBlocks] = useState<string | null>(null);
   const movePlayerRef = useRef<(direction: string) => boolean>(() => true);
   const workspaceRef = useRef<BlocklyWorkspaceRef>(null);
 
@@ -59,7 +58,6 @@ function Admin() {
 
     const levelData = saveLevelData(levelNumber, gridData, workspace);
     if (levelData) {
-      setSavedBlocks(JSON.stringify(levelData.bloquesUsados, null, 2));
       console.log("Nivel guardado:", levelData);
     } else {
       console.error("No se pudo guardar el nivel.");
